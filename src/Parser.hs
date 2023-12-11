@@ -49,14 +49,16 @@ parseSome p str = case p str of
 parseUInt :: Parser Int
 parseUInt str = case parseSome (parseAnyChar "0123456789") str of
     Just (x, xs) -> Just (read x, xs)
-    Nothing -> Nothing
+    Nothing -> case parseChar '+' str of
+        Just (_, xs) -> parseUInt xs
+        Nothing -> Nothing
 
 parseInt :: Parser Int
 parseInt str = case parseOr (parseChar '-') (parseChar '+') str of
     Just (x, xs) -> case parseUInt xs of
         Just (y, ys) -> Just (if x == '-' then -y else y, ys)
         Nothing -> Nothing
-    Nothing -> Nothing
+    Nothing -> parseUInt str
 
 parseInput :: String -> IO ()
 parseInput filename = do
