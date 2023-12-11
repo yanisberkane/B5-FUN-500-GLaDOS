@@ -1,0 +1,10 @@
+name:                glados
+version:             0.1.0.0
+cabal-version:       >= 1.8
+
+executable glados
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  other-modules:       ErrorHandler FileProcessing
+  build-depends:       base >= 4.7 && < 5,
+                       filepath
