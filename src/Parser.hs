@@ -1,6 +1,7 @@
 module Parser (parseInput) where
 
 import System.IO
+import Data.Maybe
 import qualified Data.Text as T
 
 type Parser a = String -> Maybe (a , String )
@@ -14,9 +15,8 @@ parseAnyChar str (x:xs) | x `elem` str = Just (x, xs)
 parseAnyChar _ _ = Nothing
 
 parseOr :: Parser a -> Parser a -> Parser a
-parseOr p1 p2 str = case p1 str of
-    Just (x, xs) -> Just (x, xs)
-    Nothing -> p2 str
+parseOr p1 p2 str | isNothing(p1 str) = p2 str
+parseOr p1 _ str = p1 str
 
 parseAnd :: Parser a -> Parser b -> Parser (a, b)
 parseAnd p1 p2 str = case p1 str of
@@ -44,6 +44,18 @@ parseSome p str = case p str of
     Just (x, xs) -> case parseMany p xs of
         Just (y, ys) -> Just (x:y, ys)
         Nothing -> Just ([x], xs)
+    Nothing -> Nothing
+
+parseUInt :: Parser Int
+parseUInt str = case parseSome (parseAnyChar "0123456789") str of
+    Just (x, xs) -> Just (read x, xs)
+    Nothing -> Nothing
+
+parseInt :: Parser Int
+parseInt str = case parseOr (parseChar '-') (parseChar '+') str of
+    Just (x, xs) -> case parseUInt xs of
+        Just (y, ys) -> Just (if x == '-' then -y else y, ys)
+        Nothing -> Nothing
     Nothing -> Nothing
 
 parseInput :: String -> IO ()
