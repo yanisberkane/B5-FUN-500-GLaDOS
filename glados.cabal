@@ -5,6 +5,15 @@ cabal-version:       >= 1.8
 executable glados
   hs-source-dirs:      src
   main-is:             Main.hs
-  other-modules:       ErrorHandler FileProcessing
+  other-modules:       ErrorHandler FileProcessing TerminalMode Operators Interpreter Types
   build-depends:       base >= 4.7 && < 5,
-                       filepath
+                       filepath,
+                       containers
+
+executable glados-test
+  hs-source-dirs:      test, src
+  main-is:             Spec.hs
+  other-modules:       ErrorHandler FileProcessing TerminalMode InterpreterTest Operators Interpreter Types ErrorHandler
+  build-depends:       base >= 4.7 && < 5,
+                       filepath,
+                       containers
