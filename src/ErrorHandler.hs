@@ -1,7 +1,6 @@
 module ErrorHandler (handleError, ErrorType(..)) where
 import System.Exit (exitWith, ExitCode(ExitFailure))
 
-
 data ErrorType = ParsingError String
                       | RuntimeError String
                       | TypeError String
