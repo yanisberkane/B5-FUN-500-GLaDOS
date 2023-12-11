@@ -18,18 +18,7 @@ GLaDOS (Generic Language and Data Operand Syntax) is a custom programming langua
 
 ### Installationa
 
-1. Navigate to the project directory:
-
-cd glados
-
-arduino
-
-2. Build the project using Stack:
-
-stack build
-
-bash
-
+TO DO
 
 ### Running the Language
 To run a program written in GLaDOS, use the following command:
@@ -37,10 +26,6 @@ To run a program written in GLaDOS, use the following command:
 ./glados < your_program.glados
 
 shell
-
-
-## Usage
-Describe how to write programs in your language, including syntax and basic constructs. Provide examples for better understanding.
 
 ### Examples
 

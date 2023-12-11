@@ -14,7 +14,7 @@ build: clean
 	stack build --copy-bins --local-bin-path .
 
 test:
-	stack test
+	stack test --coverage --copy-bins --local-bin-path .
 
 clean:
 	stack clean
@@ -22,6 +22,7 @@ clean:
 fclean: clean
 	rm -rf .stack-work
 	rm -f glados
+	rm -f glados-test
 
 re: fclean build
 
