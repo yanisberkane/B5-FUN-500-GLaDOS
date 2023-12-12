@@ -7,7 +7,8 @@ import ErrorHandler (ErrorType(..))
 
 evaluate :: Env -> Ast -> Either ErrorType (Ast, Env)
 evaluate env ast = case ast of
-    Define _ (SSymbol name) valueAst -> evaluateDefine env name valueAst
+    AstList [AstSymbol "define", AstSymbol name, valueExpr] ->
+        evaluateDefine env name valueExpr
     AstInt n -> Right (AstInt n, env)
     AstSymbol s -> evaluateSymbol env s
     AstList lst -> evaluateList env lst
@@ -29,8 +30,9 @@ evaluateList :: Env -> [Ast] -> Either ErrorType (Ast, Env)
 evaluateList env (AstSymbol func : args) = case func of
     "+" -> Ops.add evaluate env args
     "-" -> Ops.subtract evaluate env args
-    _   -> Left $ UndefinedFunctionError ("Unknown function: " ++ func)
+    _ -> Left $ UndefinedFunctionError ("Unknown function: " ++ func)
 evaluateList env _ = Right (AstInt 0, env)
+
 
 sExprToAst :: SExpr -> Ast
 sExprToAst (SInt n) = AstInt n
