@@ -16,10 +16,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up Haskell and Stack
-      uses: haskell/actions/setup@v1
-      with:
-        ghc-version: 9.2.7
-        stack-version: 2.9.3
+      run: ./setup-haskell-stack.sh
 
     - name: Build and test
       run: make build test
