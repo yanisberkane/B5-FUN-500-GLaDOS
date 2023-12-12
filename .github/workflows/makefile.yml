@@ -18,5 +18,14 @@ jobs:
     - name: Set up Haskell and Stack
       run: ./setup-haskell-stack.sh
 
-    - name: Build and test
-      run: make build test
+    - name: Build project
+      run: make build
+
+    - name: Run tests
+      run: |
+        make test
+        result=$?
+        if [ $result -ne 0 ]; then
+          echo "Tests failed"
+          exit $result
+        fi
