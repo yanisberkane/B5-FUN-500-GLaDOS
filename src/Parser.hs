@@ -1,7 +1,21 @@
+module Parser (
+    Parser(..),
+    parseChar,
+    parseAnyChar,
+    parseOr,
+    parseAnd,
+    parseAndWith,
+    parseMany,
+    parseSome,
+    parseUInt,
+    parseInt,
+    parseSymbol,
+    parseWhiteSpace,
+    parseInput) where
 import System.IO
 import Data.Maybe
 import Control.Applicative
-import qualified Data.Text as T
+
 
 data Parser a = Parser {
     runParser :: String -> Maybe (a, String)
@@ -55,7 +69,7 @@ parseAnd p1 p2 = Parser $ \str -> case runParser p1 str of
 parseAndWith :: ( a -> b -> c ) -> Parser a -> Parser b -> Parser c
 parseAndWith f p1 p2 = Parser $ \str -> case runParser p1 str of
     Just (x, xs) -> case runParser p2 xs of
-        Just (y, ys) -> Just ((f x y), ys)
+        Just (y, ys) -> Just (f x y, ys)
         Nothing -> Nothing
     Nothing -> Nothing
 
@@ -70,13 +84,16 @@ parseSome :: Parser a -> Parser [a]
 parseSome p = (:) <$> p <*> parseMany p
 
 parseUInt :: Parser Int
-parseUInt = fmap read $ parseSome (parseAnyChar "0123456789")
+parseUInt = read <$> parseSome (parseAnyChar "0123456789")
 
 parseInt :: Parser Int
 parseInt = (\x y -> if x == '-' then -y else y) <$> parseOr (parseChar '-') (parseChar '+') <*> parseUInt
 
+parseSymbol :: Parser String
+parseSymbol = parseSome $ parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z']) <|> parseAnyChar "0123456789"
+
 parseWhiteSpace :: Parser String
-parseWhiteSpace = parseMany $ parseAnyChar " \t\n"
+parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
 
 -- runParser parsePair parseInt "(123 456) foo bar"
 -- Just ((123,456)," foo bar")
