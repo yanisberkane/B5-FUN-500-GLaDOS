@@ -1,28 +1,26 @@
+
+module ParserSExpr (
+    stringToSExpr
+) where
 import Parser
 import Types
+import Control.Applicative
 
--- fromStrToSList :: String -> Maybe SExpr
--- fromStrToSList str = case runParser parseList str of
---     Just (x, _) -> Just $ SList x
---     Nothing -> Nothing
+parseSSymbol :: Parser SExpr
+parseSSymbol = SSymbol <$> (parseMany parseWhiteSpace *> parseSymbol)
 
-fromStrToSList :: String -> Maybe SExpr
-fromStrToSList str = case runParser parseList str of
-    Just (x, _) -> Just $ SList x
+parseSInt :: Parser SExpr
+parseSInt = SInt <$> (parseMany parseWhiteSpace *> (parseInt <|> parseUInt))
+
+parseSList :: Parser SExpr
+parseSList = fmap SList $ parseMany parseWhiteSpace *> parseChar '(' *> parseMany (parseMany parseWhiteSpace *> parseExpr <* parseMany parseWhiteSpace) <* parseChar ')'
+
+parseExpr :: Parser SExpr
+parseExpr = parseSSymbol
+        <|> parseSInt
+        <|> parseSList
+
+stringToSExpr :: String -> Maybe SExpr
+stringToSExpr input = case runParser parseExpr input of
+    Just (x, _) -> Just x
     Nothing -> Nothing
-
-fromStrToSSymbol :: String -> Maybe SExpr
-fromStrToSSymbol str = case runParser parseSymbol str of
-    Just (x, _) -> Just $ SSymbol x
-    Nothing -> Nothing
-
-fromStrToSInt :: String -> Maybe SExpr
-fromStrToSInt nbr = case runParser (parseOr parseInt parseUInt) nbr of
-    Just (x, _) -> Just $ SInt x
-    Nothing -> Nothing
-
--- fromStrToSExpr :: String -> Maybe SExpr
--- fromStrToSExpr str = fromStrToSSymbol str | (fromStrToSInt str)
-    -- Nothing -> Nothing
--- intToSExpr nbr = Just SInt
--- intToSExpr _ = Nothing

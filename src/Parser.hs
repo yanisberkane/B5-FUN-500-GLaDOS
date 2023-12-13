@@ -11,11 +11,10 @@ module Parser (
     parseInt,
     parseSymbol,
     parseWhiteSpace,
-    parseInput) where
+    parseNoneOf) where
 import System.IO
 import Data.Maybe
 import Control.Applicative
-
 
 data Parser a = Parser {
     runParser :: String -> Maybe (a, String)
@@ -83,6 +82,11 @@ parseMany p = Parser $ \str -> case runParser p str of
 parseSome :: Parser a -> Parser [a]
 parseSome p = (:) <$> p <*> parseMany p
 
+parseNoneOf :: String -> Parser Char
+parseNoneOf str = Parser $ \str' -> case str' of
+    (x:xs) | x `notElem` str -> Just (x, xs)
+    _ -> Nothing
+
 parseUInt :: Parser Int
 parseUInt = read <$> parseSome (parseAnyChar "0123456789")
 
@@ -90,19 +94,7 @@ parseInt :: Parser Int
 parseInt = (\x y -> if x == '-' then -y else y) <$> parseOr (parseChar '-') (parseChar '+') <*> parseUInt
 
 parseSymbol :: Parser String
-parseSymbol = parseSome $ parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z']) <|> parseAnyChar "0123456789"
+parseSymbol = parseSome $ parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
-
--- runParser parsePair parseInt "(123 456) foo bar"
--- Just ((123,456)," foo bar")
--- parsePair :: Parser a -> Parser (a, a)
--- parsePair p = parseAndWith (,) (parseChar '(' *> parseWhiteSpace *> p) (parseWhiteSpace *> parseChar ')')
-
-parseInput :: String -> IO ()
-parseInput filename = do
-    fileHandle <- openFile filename ReadMode
-    contents <- hGetContents fileHandle
-    print contents
-    hClose fileHandle

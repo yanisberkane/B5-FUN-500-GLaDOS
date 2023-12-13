@@ -3,6 +3,7 @@ import Control.Monad
 import ErrorHandler
 import System.IO.Error (catchIOError, isDoesNotExistError)
 import System.FilePath (takeExtension)
+import ParserSExpr (stringToSExpr)
 
 processFile :: FilePath -> IO ()
 processFile filename
@@ -18,5 +19,5 @@ processContent :: String -> IO ()
 processContent content
     | null content = handleError $ FileError "File is empty."
     | otherwise = do
-        putStrLn "PASING GOES HERE !!! - File content processed:"
         print content
+        -- stringToSExpr content

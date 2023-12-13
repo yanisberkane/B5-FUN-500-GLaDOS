@@ -31,11 +31,4 @@ sexprToAst (SSymbol str) = Just $ AstSymbol str
 sexprToAst (SInt int) = Just $ AstInt int
 sexprToAst (SList list) = AstList <$> mapM sexprToAst list
 
-printTree :: SExpr -> Maybe String
-printTree (SSymbol str) = Just $ "a Symbol '" ++ str ++ "'"
-printTree (SInt int) = Just $ "a Number " ++ show int
-printTree (SList list) = Just $ "a List with" ++ foldl appendItem "" list
-  where
-    appendItem acc x = acc ++ " " ++ fromJust (printTree x)
-
 type Env = Map.Map String Ast
