@@ -20,7 +20,7 @@ parseExpr = parseSSymbol
         <|> parseSInt
         <|> parseSList
 
-stringToSExpr :: String -> Maybe SExpr
-stringToSExpr input = case runParser parseExpr input of
+stringToSExpr :: String -> Maybe [SExpr]
+stringToSExpr input = case runParser (parseMany parseExpr) input of
     Just (x, _) -> Just x
     Nothing -> Nothing
