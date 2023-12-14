@@ -7,7 +7,7 @@ import Types
 import Control.Applicative
 
 parseSSymbol :: Parser SExpr
-parseSSymbol = SSymbol <$> (parseMany parseWhiteSpace *> parseSymbol)
+parseSSymbol = SSymbol <$> parseOr (parseMany parseWhiteSpace *> parseSymbol) (parseMany parseWhiteSpace *> parseQuotedSymbol)
 
 parseSInt :: Parser SExpr
 parseSInt = SInt <$> (parseMany parseWhiteSpace *> (parseInt <|> parseUInt))

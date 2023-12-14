@@ -10,6 +10,7 @@ module Parser (
     parseUInt,
     parseInt,
     parseSymbol,
+    parseQuotedSymbol,
     parseWhiteSpace,
     parseNoneOf) where
 import System.IO
@@ -93,8 +94,18 @@ parseUInt = read <$> parseSome (parseAnyChar "0123456789")
 parseInt :: Parser Int
 parseInt = (\x y -> if x == '-' then -y else y) <$> parseOr (parseChar '-') (parseChar '+') <*> parseUInt
 
+parseQuotedSymbol :: Parser String
+parseQuotedSymbol = do parseChar '\"'
+                       str <- parseMany $ parseNoneOf "\""
+                       parseChar '\"'
+                       return str
+
 parseSymbol :: Parser String
 parseSymbol = parseSome $ parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])
+-- parseSymbol = do parseChar '\"'
+--                  str <- parseMany $ parseNoneOf "\""
+--                  parseChar '\"'
+--                  return str
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
