@@ -95,17 +95,13 @@ parseInt :: Parser Int
 parseInt = (\x y -> if x == '-' then -y else y) <$> parseOr (parseChar '-') (parseChar '+') <*> parseUInt
 
 parseQuotedSymbol :: Parser String
-parseQuotedSymbol = do parseChar '\"'
+parseQuotedSymbol = do parseChar '"'
                        str <- parseMany $ parseNoneOf "\""
-                       parseChar '\"'
+                       parseChar '"'
                        return str
 
 parseSymbol :: Parser String
 parseSymbol = parseSome $ parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])
--- parseSymbol = do parseChar '\"'
---                  str <- parseMany $ parseNoneOf "\""
---                  parseChar '\"'
---                  return str
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
