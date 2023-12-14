@@ -1,7 +1,8 @@
 module Main where
+
 import System.IO
-import Control.Monad
 import System.Environment
+import Control.Monad
 import FileProcessing
 import TerminalMode
 
@@ -10,4 +11,14 @@ main = do
     args <- getArgs
     case args of
         [filename] -> processFile filename
-        []         -> startTerminalSession
+        [] -> do
+            inputAvailable <- hReady stdin
+            if inputAvailable
+                then readAndProcessStdin
+                else startTerminalSession
+        _ -> putStrLn "Error: Invalid arguments"
+
+readAndProcessStdin :: IO ()
+readAndProcessStdin = do
+    content <- getContents
+    processContent content

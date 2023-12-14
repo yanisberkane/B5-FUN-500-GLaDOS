@@ -39,6 +39,6 @@ divide evaluate env (x:xs) = do
         Right [] -> Left $ RuntimeError "Division needs at least one argument"
         Left err -> Left err
 
-astToInt :: Ast -> Ei ther ErrorType Int
+astToInt :: Ast -> Either ErrorType Int
 astToInt (AstInt n) = Right n
 astToInt _ = Left $ TypeError "Expected an integer"

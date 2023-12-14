@@ -5,13 +5,17 @@ import Data.Maybe
 
 data SExpr = SInt Int
            | SSymbol String
+           | SBool Bool
            | SList [SExpr]
            deriving (Show, Eq)
 
-data Ast = Define SExpr SExpr Ast
-         | AstInt Int
+data Ast = AstInt Int
+         | AstBool Bool
          | AstSymbol String
          | AstList [Ast]
+         | Define Ast Ast Ast
+         | Lambda [String] Ast
+         | FunctionCall Ast [Ast]
          deriving (Show, Eq)
 
 getSSymbol :: SExpr -> Maybe String
