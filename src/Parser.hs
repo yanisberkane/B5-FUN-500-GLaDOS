@@ -101,7 +101,7 @@ parseQuotedSymbol = do parseChar '"'
                        return str
 
 parseSymbol :: Parser String
-parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])) (parseAnyChar "*+-/%!?")
+parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])) (parseAnyChar "*+-/%!?<>=")
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
