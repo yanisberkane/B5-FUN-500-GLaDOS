@@ -1,48 +1,45 @@
 module FileProcessing (processFile, processContent) where
-import Control.Monad
-import ErrorHandler
+
+import Control.Monad (foldM)
+import ErrorHandler (formatError, handleError, formatResult, ErrorType(..))
 import System.IO.Error (catchIOError, isDoesNotExistError)
 import System.FilePath (takeExtension)
 import ParserSExpr (stringToSExpr)
-import Types (Env, SExpr, Ast)
+import Types (Ast(..), SExpr(..), Env)
 import Interpreter (evaluate, sExprToAst)
 import qualified Data.Map as Map
+import System.Exit (exitFailure)
 
 processFile :: FilePath -> IO ()
 processFile filename
-    | takeExtension filename /= ".glados" = handleError $ FileError "Invalid file extension. Expecting '.glados'"
+    | takeExtension filename /= ".scm" = handleError $ FileError "Invalid file extension. Expecting '.scm'"
     | otherwise = readFile filename `catchIOError` handleFileReadError >>= processContent
-
-processSExpr :: Env -> SExpr -> IO Env
-processSExpr env sexpr = do
-    let ast = sExprToAst sexpr
-    case evaluate env ast of
-        Left error -> print error >> return env
-        Right (result, newEnv) -> print result >> return newEnv
 
 processContent :: String -> IO ()
 processContent content
     | null content = handleError $ FileError "No input provided."
-    | otherwise = do
-        case stringToSExpr content of
-            Just sexprs -> foldM processSExpr Map.empty sexprs >> return ()
-            Nothing -> handleError $ ParsingError "Failed to parse the content."
+    | otherwise = maybe (handleError $ ParsingError "Failed to parse the content.") (processExpressions Map.empty) (stringToSExpr content)
+
+processExpressions :: Env -> [SExpr] -> IO ()
+processExpressions env [] = handleError $ ParsingError "No expressions to evaluate."
+processExpressions env sexprs = do
+    finalEnv <- foldM processSExpr env (init sexprs)
+    evaluateAndPrint finalEnv (last sexprs)
+
+processSExpr :: Env -> SExpr -> IO Env
+processSExpr env sexpr = case evaluate env (sExprToAst sexpr) of
+    Left err -> handleError err >> return env
+    Right (_, newEnv) -> return newEnv
+
+evaluateAndPrint :: Env -> SExpr -> IO ()
+evaluateAndPrint env sexpr = case evaluate env (sExprToAst sexpr) of
+    Left err -> handleError err
+    Right (result, _) -> maybe (return ()) putStrLn (formatResult result)
 
 handleFileReadError :: IOError -> IO String
-handleFileReadError e
-    | isDoesNotExistError e = do
-        handleError (FileError "File does not exist.")
-        return ""
-    | otherwise = do
-        handleError (FileError $ "Error reading file: " ++ show e)
-        return ""
-
-evaluateExpressions :: [SExpr] -> Env -> IO ()
-evaluateExpressions [] _ = return ()
-evaluateExpressions (sexpr:sexprs) env = do
-    let ast = sExprToAst sexpr
-    case evaluate env ast of
-        Left error -> print error
-        Right (result, newEnv) -> do
-            print result
-            evaluateExpressions sexprs newEnv
+handleFileReadError e = do
+    putStrLn $ formatError $ if isDoesNotExistError e
+        then FileError "File does not exist."
+        else FileError $ "Error reading file: " ++ show e
+    exitFailure
+    return ""
