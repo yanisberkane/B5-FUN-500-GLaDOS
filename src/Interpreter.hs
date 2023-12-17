@@ -54,6 +54,7 @@ evaluateList env (firstElement:args) = do
                 "-" -> Ops.subtract newEnv argValues
                 "*" -> Ops.multiply newEnv argValues
                 "div" -> Ops.divide newEnv argValues
+                "mod" -> modulo newEnv argValues
                 "<" -> evaluateLessThan newEnv argValues
                 ">" -> evaluateGreaterThan newEnv argValues
                 "eq?" -> evaluateEqual newEnv argValues
@@ -65,6 +66,10 @@ evaluateList env (firstElement:args) = do
             in applyLambda newEnv paramNames body argValues
         _ -> Left $ RuntimeError "Invalid function call format"
 evaluateList _ _ = Left $ RuntimeError "Invalid function call"
+
+modulo :: Env -> [Ast] -> Either ErrorType (Ast, Env)
+modulo env [AstInt x, AstInt y] = Right (AstInt (x `mod` y), env)
+modulo _ _ = Left $ TypeError "Invalid arguments for mod operator"
 
 evaluateEqual :: Env -> [Ast] -> Either ErrorType (Ast, Env)
 evaluateEqual env [x, y] = do
