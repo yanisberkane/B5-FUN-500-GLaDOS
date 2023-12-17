@@ -40,7 +40,6 @@ sexprToAst (SString str) = Just $ AstString str
 sexprToAst (SInt int) = Just $ AstInt int
 sexprToAst (SBool b) = Just $ AstBool b
 sexprToAst (SList list) = AstList <$> mapM sexprToAst list
-sexprToAst _ = Nothing
 
 astToSExpr :: Ast -> SExpr
 astToSExpr (If cond thenExpr elseExpr) = SList [SSymbol "if", astToSExpr cond, astToSExpr thenExpr, astToSExpr elseExpr]

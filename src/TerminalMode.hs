@@ -24,19 +24,13 @@ terminalLoop env = do
 processInput :: Env -> SExpr -> IO Env
 processInput env sexpr = do
     let maybeAst = sexprToAst sexpr
-    putStrLn $ "Debug: Parsed AST - " ++ show maybeAst
     case maybeAst of
-        Just ast -> 
+        Just ast ->
             case evaluate env ast of
                 Left err -> do
-                    putStrLn "Debug: Evaluation error"
                     putStrLn (formatError err)
                     return env
                 Right (result, newEnv) -> do
-                    putStrLn $ "Debug: Evaluation result - " ++ show result
                     maybe (return ()) putStrLn (formatResult result)
                     return newEnv
-        Nothing -> do
-            putStrLn "Debug: Failed to parse SExpr to Ast"
-            return env
-
+        Nothing -> return env

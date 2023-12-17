@@ -24,6 +24,6 @@ formatError err = "*** ERROR: " ++ show err
 
 formatResult :: Ast -> Maybe String
 formatResult (AstInt n) = Just $ show n
-formatResult (AstBool b) = Just $ show b
+formatResult (AstBool b) = if b then Just "#t" else Just "#f"
 formatResult (AstString s) = Just s
 formatResult _ = Nothing
