@@ -2,8 +2,8 @@ module TerminalMode (startTerminalSession) where
 
 import System.IO (hFlush, stdout)
 import ParserSExpr (stringToSExpr)
-import Interpreter (evaluate, sExprToAst)
-import Types (Env, SExpr, Ast)
+import Interpreter (evaluate)
+import Types (Env, SExpr, Ast, sexprToAst)
 import ErrorHandler (formatError, formatResult)
 import qualified Data.Map as Map
 import Control.Monad (unless)
@@ -22,8 +22,21 @@ terminalLoop env = do
             _ -> terminalLoop env
 
 processInput :: Env -> SExpr -> IO Env
-processInput env sexpr = case evaluate env (sExprToAst sexpr) of
-    Left err -> putStrLn (formatError err) >> return env
-    Right (result, newEnv) -> do
-        maybe (return ()) putStrLn (formatResult result)
-        return newEnv
+processInput env sexpr = do
+    let maybeAst = sexprToAst sexpr
+    putStrLn $ "Debug: Parsed AST - " ++ show maybeAst
+    case maybeAst of
+        Just ast -> 
+            case evaluate env ast of
+                Left err -> do
+                    putStrLn "Debug: Evaluation error"
+                    putStrLn (formatError err)
+                    return env
+                Right (result, newEnv) -> do
+                    putStrLn $ "Debug: Evaluation result - " ++ show result
+                    maybe (return ()) putStrLn (formatResult result)
+                    return newEnv
+        Nothing -> do
+            putStrLn "Debug: Failed to parse SExpr to Ast"
+            return env
+

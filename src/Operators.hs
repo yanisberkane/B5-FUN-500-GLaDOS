@@ -3,27 +3,27 @@ module Operators where
 import Types (Ast(..), Env)
 import ErrorHandler (ErrorType(..))
 
-type EvaluateFunc = Env -> Ast -> Either ErrorType (Ast, Env)
+type BuiltInFunction = Env -> [Ast] -> Either ErrorType (Ast, Env)
 
-add :: EvaluateFunc -> Env -> [Ast] -> Either ErrorType (Ast, Env)
-add evaluate env args = arithmeticOp evaluate env args sum
+add :: BuiltInFunction
+add env args = arithmeticOp env args sum
 
-subtract :: EvaluateFunc -> Env -> [Ast] -> Either ErrorType (Ast, Env)
-subtract evaluate env [x] = Left $ RuntimeError "Subtraction requires at least two arguments"
-subtract evaluate env (x:xs) = arithmeticOp evaluate env (x:xs) (\ns -> foldl (-) (head ns) (tail ns))
+subtract :: BuiltInFunction
+subtract env [x] = Left $ RuntimeError "Subtraction requires at least two arguments"
+subtract env (x:xs) = arithmeticOp env (x:xs) (\ns -> foldl (-) (head ns) (tail ns))
 
-multiply :: EvaluateFunc -> Env -> [Ast] -> Either ErrorType (Ast, Env)
-multiply evaluate env args = arithmeticOp evaluate env args product
+multiply :: BuiltInFunction
+multiply env args = arithmeticOp env args product
 
-divide :: EvaluateFunc -> Env -> [Ast] -> Either ErrorType (Ast, Env)
-divide evaluate env [x] = Left $ RuntimeError "Division requires at least two arguments"
-divide evaluate env (x:xs) = arithmeticOp evaluate env (x:xs) (\ns -> foldl div (head ns) (tail ns))
+divide :: BuiltInFunction
+divide env [x] = Left $ RuntimeError "Division requires at least two arguments"
+divide env (x:xs) = arithmeticOp env (x:xs) (\ns -> foldl div (head ns) (tail ns))
 
-arithmeticOp :: EvaluateFunc -> Env -> [Ast] -> ([Int] -> Int) -> Either ErrorType (Ast, Env)
-arithmeticOp evaluate env args op = do
-    evaluatedArgs <- mapM (evaluate env) args
-    let ints = mapM (\(ast, _) -> astToInt ast) evaluatedArgs
-    case ints of
+arithmeticOp :: Env -> [Ast] -> ([Int] -> Int) -> Either ErrorType (Ast, Env)
+arithmeticOp env args op = do
+    evaluatedArgs <- mapM (\ast -> astToInt ast >>= \n -> return (AstInt n, env)) args
+    let ints = map (\(ast, _) -> astToInt ast) evaluatedArgs
+    case sequence ints of
         Right ns -> Right (AstInt $ op ns, env)
         Left err -> Left err
 

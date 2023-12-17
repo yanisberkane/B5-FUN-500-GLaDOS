@@ -12,6 +12,7 @@ module Parser (
     parseSymbol,
     parseQuotedSymbol,
     parseWhiteSpace,
+    parseString,
     parseNoneOf) where
 import System.IO
 import Data.Maybe
@@ -105,3 +106,6 @@ parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyCh
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
+
+parseString :: String -> Parser String
+parseString s = traverse parseChar s

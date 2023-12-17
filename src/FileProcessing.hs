@@ -5,8 +5,8 @@ import ErrorHandler (formatError, handleError, formatResult, ErrorType(..))
 import System.IO.Error (catchIOError, isDoesNotExistError)
 import System.FilePath (takeExtension)
 import ParserSExpr (stringToSExpr)
-import Types (Ast(..), SExpr(..), Env)
-import Interpreter (evaluate, sExprToAst)
+import Types (Ast(..), SExpr(..), Env, sexprToAst)
+import Interpreter (evaluate)
 import qualified Data.Map as Map
 import System.Exit (exitFailure)
 
@@ -27,14 +27,22 @@ processExpressions env sexprs = do
     evaluateAndPrint finalEnv (last sexprs)
 
 processSExpr :: Env -> SExpr -> IO Env
-processSExpr env sexpr = case evaluate env (sExprToAst sexpr) of
-    Left err -> handleError err >> return env
-    Right (_, newEnv) -> return newEnv
+processSExpr env sexpr = case sexprToAst sexpr of
+    Just ast ->
+        case evaluate env ast of
+            Left err -> handleError err >> return env
+            Right (_, newEnv) -> return newEnv
+    Nothing -> do
+        handleError $ RuntimeError "Failed to parse SExpr to Ast"
+        return env
 
 evaluateAndPrint :: Env -> SExpr -> IO ()
-evaluateAndPrint env sexpr = case evaluate env (sExprToAst sexpr) of
-    Left err -> handleError err
-    Right (result, _) -> maybe (return ()) putStrLn (formatResult result)
+evaluateAndPrint env sexpr = case sexprToAst sexpr of
+    Just ast ->
+        case evaluate env ast of
+            Left err -> handleError err
+            Right (result, _) -> maybe (return ()) putStrLn (formatResult result)
+    Nothing -> handleError $ RuntimeError "Failed to parse SExpr to Ast"
 
 handleFileReadError :: IOError -> IO String
 handleFileReadError e = do
