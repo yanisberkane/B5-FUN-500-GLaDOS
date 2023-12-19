@@ -5,6 +5,7 @@ import qualified Data.Map as Map
 import ErrorHandler (ErrorType(..))
 import Parser
 import Control.Applicative
+import System.Exit
 
 evaluateAst :: Env -> Maybe Ast -> Either ErrorType (Ast, Env)
 evaluateAst env maybeAst = case maybeAst of
@@ -393,4 +394,8 @@ tests = TestList [
                 ]
 
 main :: IO Counts
-main = runTestTT tests
+main = do
+    counts <- runTestTT tests
+    if errors counts + failures counts > 0
+        then exitFailure
+        else exitSuccess
