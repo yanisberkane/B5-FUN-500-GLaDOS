@@ -48,3 +48,4 @@ Output: `42`
 - Aurélien LECLERCQ (aurelien.leclercq@epitech.eu).
 - Edgar DION (edgar.dion@epitech.eu).
 - Marius LACOMBLEZ (marius.lacomblez@epitech.eu).
+- Yanis BERKANE (yanis.berkane@epitech.eu).
