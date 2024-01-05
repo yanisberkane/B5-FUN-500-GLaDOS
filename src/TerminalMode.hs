@@ -1,9 +1,9 @@
 module TerminalMode (startTerminalSession) where
 
 import System.IO (hFlush, stdout)
-import ParserSExpr (stringToSExpr)
+import CCSParser (bufferToCCS)
 import Interpreter (evaluate)
-import Types (Env, SExpr, Ast, sexprToAst)
+import Types (Env, CCS, Ast, ccsToAst)
 import ErrorHandler (formatError, formatResult)
 import qualified Data.Map as Map
 import Control.Monad (unless)
@@ -17,13 +17,13 @@ terminalLoop env = do
     hFlush stdout
     input <- getLine
     unless (input == "exit") $ do
-        case stringToSExpr input of
-            Just [sexpr] -> processInput env sexpr >>= terminalLoop
+        case bufferToCCS input of
+            Just [ccs] -> processInput env ccs >>= terminalLoop
             _ -> terminalLoop env
 
-processInput :: Env -> SExpr -> IO Env
+processInput :: Env -> CCS -> IO Env
 processInput env sexpr = do
-    let maybeAst = sexprToAst sexpr
+    let maybeAst = ccsToAst sexpr
     case maybeAst of
         Just ast ->
             case evaluate env ast of

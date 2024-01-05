@@ -4,8 +4,8 @@ import Control.Monad (foldM)
 import ErrorHandler (formatError, handleError, formatResult, ErrorType(..))
 import System.IO.Error (catchIOError, isDoesNotExistError)
 import System.FilePath (takeExtension)
-import ParserSExpr (stringToSExpr)
-import Types (Ast(..), SExpr(..), Env, sexprToAst)
+import CCSParser (bufferToCCS)
+import Types (Ast(..), CCS, Env, ccsToAst)
 import Interpreter (evaluate)
 import qualified Data.Map as Map
 import System.Exit (exitFailure)
@@ -18,31 +18,31 @@ processFile filename
 processContent :: String -> IO ()
 processContent content
     | null content = handleError $ FileError "No input provided."
-    | otherwise = maybe (handleError $ ParsingError "Failed to parse the content.") (processExpressions Map.empty) (stringToSExpr content)
+    | otherwise = maybe (handleError $ ParsingError "Failed to parse the content.") (processExpressions Map.empty) (bufferToCCS content)
 
-processExpressions :: Env -> [SExpr] -> IO ()
+processExpressions :: Env -> [CCS] -> IO ()
 processExpressions env [] = handleError $ ParsingError "No expressions to evaluate."
-processExpressions env sexprs = do
-    finalEnv <- foldM processSExpr env (init sexprs)
-    evaluateAndPrint finalEnv (last sexprs)
+processExpressions env ccsExprs = do
+    finalEnv <- foldM processSExpr env (init ccsExprs)
+    evaluateAndPrint finalEnv (last ccsExprs)
 
-processSExpr :: Env -> SExpr -> IO Env
-processSExpr env sexpr = case sexprToAst sexpr of
+processSExpr :: Env -> CCS -> IO Env
+processSExpr env ccsExpr = case ccsToAst ccsExpr of
     Just ast ->
         case evaluate env ast of
             Left err -> handleError err >> return env
             Right (_, newEnv) -> return newEnv
     Nothing -> do
-        handleError $ RuntimeError "Failed to parse SExpr to Ast"
+        handleError $ RuntimeError "Failed to parse CCS to Ast"
         return env
 
-evaluateAndPrint :: Env -> SExpr -> IO ()
-evaluateAndPrint env sexpr = case sexprToAst sexpr of
+evaluateAndPrint :: Env -> CCS -> IO ()
+evaluateAndPrint env ccsExpr = case ccsToAst ccsExpr of
     Just ast ->
         case evaluate env ast of
             Left err -> handleError err
             Right (result, _) -> maybe (return ()) putStrLn (formatResult result)
-    Nothing -> handleError $ RuntimeError "Failed to parse SExpr to Ast"
+    Nothing -> handleError $ RuntimeError "Failed to parse CCS to Ast"
 
 handleFileReadError :: IOError -> IO String
 handleFileReadError e = do

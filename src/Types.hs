@@ -3,12 +3,15 @@ module Types where
 import qualified Data.Map as Map
 import Data.Maybe
 
-data SExpr = SInt Int
-           | SSymbol String
-           | SList [SExpr]
-           | SBool Bool
-           | SString String
-           deriving (Show, Eq)
+data CCS = CCSInt Int
+         | CCSUInt Int
+         | CCSSymbol String
+         | CCSChar Char
+         | CCSString String
+         | CCSBool Bool
+         | CCSBody [CCS]
+         | CCSList [CCS]
+         deriving (Show, Eq)
 
 data Ast = AstInt Int
          | AstBool Bool
@@ -20,32 +23,32 @@ data Ast = AstInt Int
          | If Ast Ast Ast
          deriving (Show, Eq)
 
-getSSymbol :: SExpr -> Maybe String
-getSSymbol (SSymbol str) = Just str
-getSSymbol _ = Nothing
+getCCSSymbol :: CCS -> Maybe String
+getCCSSymbol (CCSSymbol str) = Just str
+getCCSSymbol _ = Nothing
 
-getSInt :: SExpr -> Maybe Int
-getSInt (SInt int) = Just int
+getSInt :: CCS -> Maybe Int
+getSInt (CCSInt int) = Just int
 getSInt _ = Nothing
 
-getSList :: SExpr -> Maybe [SExpr]
-getSList (SList list) = Just list
+getSList :: CCS -> Maybe [CCS]
+getSList (CCSList list) = Just list
 getSList _ = Nothing
 
-sexprToAst :: SExpr -> Maybe Ast
-sexprToAst (SList [SSymbol "if", cond, thenExpr, elseExpr]) =
-    If <$> sexprToAst cond <*> sexprToAst thenExpr <*> sexprToAst elseExpr
-sexprToAst (SSymbol str) = Just $ AstSymbol str
-sexprToAst (SString str) = Just $ AstString str
-sexprToAst (SInt int) = Just $ AstInt int
-sexprToAst (SBool b) = Just $ AstBool b
-sexprToAst (SList list) = AstList <$> mapM sexprToAst list
+ccsToAst :: CCS -> Maybe Ast
+ccsToAst (CCSList [CCSSymbol "if", cond, thenExpr, elseExpr]) =
+    If <$> ccsToAst cond <*> ccsToAst thenExpr <*> ccsToAst elseExpr
+ccsToAst (CCSSymbol str) = Just $ AstSymbol str
+ccsToAst (CCSString str) = Just $ AstString str
+ccsToAst (CCSInt int) = Just $ AstInt int
+ccsToAst (CCSBool b) = Just $ AstBool b
+ccsToAst (CCSList list) = AstList <$> mapM ccsToAst list
 
-astToSExpr :: Ast -> SExpr
-astToSExpr (If cond thenExpr elseExpr) = SList [SSymbol "if", astToSExpr cond, astToSExpr thenExpr, astToSExpr elseExpr]
-astToSExpr (AstSymbol str) = SSymbol str
-astToSExpr (AstInt int) = SInt int
-astToSExpr (AstBool b) = SBool b
-astToSExpr (AstList list) = SList $ map astToSExpr list
+astToCCS :: Ast -> CCS
+astToCCS (If cond thenExpr elseExpr) = CCSList [CCSSymbol "if", astToCCS cond, astToCCS thenExpr, astToCCS elseExpr]
+astToCCS (AstSymbol str) = CCSSymbol str
+astToCCS (AstInt int) = CCSInt int
+astToCCS (AstBool b) = CCSBool b
+astToCCS (AstList list) = CCSList $ map astToCCS list
 
 type Env = Map.Map String Ast

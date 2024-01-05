@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Parser (
     Parser(..),
     parseChar,
@@ -13,9 +15,12 @@ module Parser (
     parseQuotedSymbol,
     parseWhiteSpace,
     parseString,
-    parseNoneOf) where
+    parseNoneOf,
+    parseBool,
+) where
 import System.IO
 import Data.Maybe
+import Data.Functor
 import Control.Applicative
 
 data Parser a = Parser {
@@ -36,7 +41,7 @@ instance Applicative Parser where
         Nothing -> Nothing
 
 instance Alternative Parser where
-    empty = Parser $ \_ -> Nothing
+    empty = Parser $ const Nothing
     p1 <|> p2 = Parser $ \str -> case runParser p1 str of
         Just (x, xs) -> Just (x, xs)
         Nothing -> runParser p2 str
@@ -48,12 +53,12 @@ instance Monad Parser where
         Nothing -> Nothing
 
 parseChar :: Char -> Parser Char
-parseChar c = Parser $ \str -> case str of
+parseChar c = Parser $ \case
     (x:xs) | c == x -> Just (c, xs)
     _ -> Nothing
 
 parseAnyChar :: String -> Parser Char
-parseAnyChar str = Parser $ \str' -> case str' of
+parseAnyChar str = Parser $ \case
     (x:xs) | x `elem` str -> Just (x, xs)
     _ -> Nothing
 
@@ -85,9 +90,9 @@ parseSome :: Parser a -> Parser [a]
 parseSome p = (:) <$> p <*> parseMany p
 
 parseNoneOf :: String -> Parser Char
-parseNoneOf str = Parser $ \str' -> case str' of
-    (x:xs) | x `notElem` str -> Just (x, xs)
-    _ -> Nothing
+parseNoneOf str = Parser $ \case
+  (x : xs) | x `notElem` str -> Just (x, xs)
+  _ -> Nothing
 
 parseUInt :: Parser Int
 parseUInt = read <$> parseSome (parseAnyChar "0123456789")
@@ -96,16 +101,16 @@ parseInt :: Parser Int
 parseInt = (\x y -> if x == '-' then -y else y) <$> parseOr (parseChar '-') (parseChar '+') <*> parseUInt
 
 parseQuotedSymbol :: Parser String
-parseQuotedSymbol = do parseChar '"'
-                       str <- parseMany $ parseNoneOf "\""
-                       parseChar '"'
-                       return str
+parseQuotedSymbol = parseChar '"' *> parseMany (parseNoneOf "\"") <* parseChar '"'
 
 parseSymbol :: Parser String
-parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])) (parseAnyChar "*+-/%!?<>=")
+parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])) (parseAnyChar "0123456789!$%&*_+-=\\|:'\"./<>?")
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
 
+parseBool :: Parser Bool
+parseBool = parseOr (parseString "True"  Data.Functor.$> True) (parseString "False" Data.Functor.$> False)
+
 parseString :: String -> Parser String
-parseString s = traverse parseChar s
+parseString = traverse parseChar
