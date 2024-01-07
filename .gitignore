@@ -3,3 +3,4 @@
 glados
 glados-test
 .vscode/*
+*.exec

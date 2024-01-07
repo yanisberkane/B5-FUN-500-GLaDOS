@@ -9,6 +9,14 @@ executable glados
   build-depends:       base >= 4.7 && < 5,
                        filepath,
                        containers
+
+executable glados-vm
+  hs-source-dirs:      vm
+  main-is:             VMMain.hs
+  other-modules:       VMErrorHandler VMExec VMTypes
+  build-depends:       base >= 4.7 && < 5,
+                       filepath,
+                       containers
 library
   hs-source-dirs:      src
   exposed-modules:     ErrorHandler FileProcessing TerminalMode Operators Interpreter Types Parser ParserSExpr
