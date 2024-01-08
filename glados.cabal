@@ -3,20 +3,22 @@ name:                glados
 version:             0.1.0.0
 
 executable glados
-  hs-source-dirs:      src
+  hs-source-dirs:      src src/glados-vm
   main-is:             Main.hs
-  other-modules:       ErrorHandler TerminalMode Operators Types Parser
+  other-modules:       ErrorHandler TerminalMode Operators Types Parser VMTypes VMBinaryFileProcess
   build-depends:       base >= 4.7 && < 5,
                        filepath,
-                       containers
+                       containers,
+                       binary
 
 executable glados-vm
-  hs-source-dirs:      vm
+  hs-source-dirs:      src/glados-vm
   main-is:             VMMain.hs
-  other-modules:       VMErrorHandler VMExec VMTypes
+  other-modules:       VMExec VMTypes VMBinaryFileProcess
   build-depends:       base >= 4.7 && < 5,
                        filepath,
-                       containers
+                       containers,
+                       binary
 library
   hs-source-dirs:      src
   exposed-modules:     ErrorHandler TerminalMode Operators Types Parser
@@ -27,7 +29,7 @@ library
 
 test-suite glados-test
   type:              exitcode-stdio-1.0
-  hs-source-dirs:    test vm
+  hs-source-dirs:    test
   main-is:           TestMain.hs
   ghc-options: -fhpc
   build-depends:     base >= 4.7 && < 5
