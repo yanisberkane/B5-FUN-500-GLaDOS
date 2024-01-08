@@ -63,11 +63,11 @@ testJumpIfFalse2Vm = TestCase $ do
     let expected2 = Right ([IntValue 42],[])
     assertEqual "execute [(IntValue (-42))] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Less), Call, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), Call, Ret])" expected2 (executed2)
 
--- testEnvVM :: Test
--- testEnvVM = TestCase $ do
---     let executed = execute [(IntValue (-42))] [("absCode", (Function [PushArg 0, Push (IntValue 0), Push (Operator Less), Call, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), Call, Ret]))] ([], [PushEnv "absCode", Call, Ret])
---     let expected = Right ([IntValue 42],[])
---     assertEqual "execute [(IntValue (-42))] [("absCode", (Function [PushArg 0, Push (IntValue 0), Push (Operator Less), Call, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), Call, Ret]))] ([], [PushEnv \"absCode\", Call, Ret])" expected (executed)
+testEnvVM :: Test
+testEnvVM = TestCase $ do
+    let executed = execute [(IntValue (-42))] [("absCode", (Function [PushArg 0, Push (IntValue 0), Push (Operator Less), Call, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), Call, Ret]))] ([], [PushVMEnv "absCode", Call, Ret])
+    let expected = Right ([IntValue 42],[])
+    assertEqual "execute [(IntValue (-42))] [(\"absCode\", (Function [PushArg 0, Push (IntValue 0), Push (Operator Less), Call, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), Call, Ret]))] ([], [PushVMEnv \"absCode\", Call, Ret])" expected (executed)
 
 -- Evaluate AST
 
@@ -413,7 +413,7 @@ tests = TestList [
                     TestLabel "testLessVM" testLessVM,
                     TestLabel "testJumpIfFalse1VM" testJumpIfFalse1VM,
                     TestLabel "testJumpIfFalse2Vm" testJumpIfFalse2Vm,
-                    -- TestLabel "testEnvVM" testEnvVM,
+                    TestLabel "testEnvVM" testEnvVM,
                     TestLabel "testDivision" testDivision,
                     TestLabel "testBasicAddition" testBasicAddition,
                     TestLabel "testBasicSubtraction" testBasicSubtraction,
