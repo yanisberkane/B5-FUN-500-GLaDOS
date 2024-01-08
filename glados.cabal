@@ -5,7 +5,7 @@ version:             0.1.0.0
 executable glados
   hs-source-dirs:      src src/glados-vm
   main-is:             Main.hs
-  other-modules:       ErrorHandler TerminalMode Operators Types Parser VMTypes VMBinaryFileProcess
+  other-modules:       ErrorHandler CCSAstParser Types Parser VMTypes VMBinaryFileProcess
   build-depends:       base >= 4.7 && < 5,
                        filepath,
                        containers,
@@ -21,7 +21,7 @@ executable glados-vm
                        binary
 library
   hs-source-dirs:      src
-  exposed-modules:     ErrorHandler TerminalMode Operators Types Parser
+  exposed-modules:     ErrorHandler CCSAstParser Types Parser
   build-depends:       base >= 4.7 && < 5
                      , filepath
                      , containers

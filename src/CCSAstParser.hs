@@ -1,3 +1,6 @@
+module CCSAstParser (
+    bufferToCCSAst
+) where
 import Types
 import Parser
 import Control.Applicative
@@ -20,45 +23,71 @@ parseSeparator :: Parser Ast
 parseSeparator = Separator <$> (parseMany parseWhiteSpace *> parseChar ';')
 
 parseDefine :: Parser Ast
-parseDefine = parseMany parseWhiteSpace *> parseString "define" *> parseMany parseWhiteSpace
-    *> parseSymbol >>= \varName -> parseMany parseWhiteSpace *>
-    parseChar '=' *> parseMany parseWhiteSpace *> parseCCSAst >>= \value -> parseMany parseWhiteSpace
-    Data.Functor.$> Define (AstSymbol varName) value <* parseSeparator
+parseDefine = parseMany parseWhiteSpace *> parseString "let" *> parseMany parseWhiteSpace
+    *> parseAstSymbol >>= \varName -> parseMany parseWhiteSpace *>
+    parseChar '=' *> parseMany parseWhiteSpace *> parseCCSAstExceptSymbol >>= \value -> parseMany parseWhiteSpace
+    Data.Functor.$> Define varName value <* parseSeparator
 
-parseList :: Parser Ast
-parseList = parseMany parseWhiteSpace *> parseChar '(' *> parseMany parseWhiteSpace
+parseAssign :: Parser Ast
+parseAssign = parseMany parseWhiteSpace *> parseAstSymbol >>= \varName ->
+    parseMany parseWhiteSpace *> parseChar '=' *> parseMany parseWhiteSpace
+    *> parseCCSAst >>= \value -> parseMany parseWhiteSpace <* parseSeparator
+    Data.Functor.$> Assign varName value
+
+parseAstList :: Parser Ast
+parseAstList = parseMany parseWhiteSpace *> parseChar '(' *> parseMany parseWhiteSpace
     *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace
     Data.Functor.$> AstList args <* parseChar ')'
 
 parseIf :: Parser Ast
 parseIf = parseMany parseWhiteSpace *> parseString "if" *> parseMany parseWhiteSpace
     *> parseCCSAst >>= \cond -> parseMany parseWhiteSpace *> parseString "then:" *> parseSome parseWhiteSpace
-    *> parseCCSAst >>= \thenExpr -> parseMany parseWhiteSpace *> parseString "else:" *> parseSome parseWhiteSpace
-    *> parseCCSAst >>= \elseExpr -> parseMany parseWhiteSpace
-    Data.Functor.$> If cond thenExpr elseExpr
+    *> parseCCSAst >>= \thenExpr -> parseMany parseWhiteSpace *>
+    parseOr
+    (parseString "else:" *> parseSome parseWhiteSpace *> parseCCSAst >>= \elseExpr -> parseMany parseWhiteSpace
+    Data.Functor.$> If cond thenExpr elseExpr)
+    (parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr AstNone)
 
 parseLambda :: Parser Ast
-parseLambda = parseMany parseWhiteSpace *> parseList >>= \params ->
+parseLambda = parseMany parseWhiteSpace *> parseAstList >>= \params ->
     parseSome parseWhiteSpace *> parseString "=>" *> parseSome parseWhiteSpace *>
-    parseList >>= \body -> parseMany parseWhiteSpace <* parseSeparator
+    parseAstList >>= \body -> parseMany parseWhiteSpace
     Data.Functor.$> Lambda params body
 
 parseNamedFunc :: Parser Ast
-parseNamedFunc = parseMany parseWhiteSpace *> parseSymbol >>= \name ->
-    parseMany parseWhiteSpace *> parseChar '(' *> parseMany parseWhiteSpace
-    *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar ')' <* parseSeparator
-    Data.Functor.$> NamedFunc (AstSymbol name) (AstList args) 
+parseNamedFunc = parseMany parseWhiteSpace *> parseAstSymbol >>= \name ->
+    parseLambda >>= \lambda -> parseMany parseWhiteSpace <* parseSeparator
+    Data.Functor.$> NamedCall name lambda
+
+parseCall :: Parser Ast
+parseCall = parseMany parseWhiteSpace *> parseAstSymbol >>= \name ->
+    parseMany parseWhiteSpace *> parseAstList >>= \args -> parseMany parseWhiteSpace <* parseSeparator
+    Data.Functor.$> Call name args
 
 parseCCSAst :: Parser Ast
-parseCCSAst = parseAstInt
-          <|> parseAstBool
-          <|> parseAstString
-          <|> parseIf
+parseCCSAst = parseIf
           <|> parseDefine
-          <|> parseLambda
+          <|> parseAssign
           <|> parseNamedFunc
-          <|> parseList
+          <|> parseLambda
+          <|> parseCall
+          <|> parseAstBool
+          <|> parseAstInt
+          <|> parseAstString
+          <|> parseAstList
           <|> parseAstSymbol
+
+parseCCSAstExceptSymbol :: Parser Ast
+parseCCSAstExceptSymbol = parseIf
+          <|> parseDefine
+          <|> parseAssign
+          <|> parseNamedFunc
+          <|> parseLambda
+          <|> parseCall
+          <|> parseAstBool
+          <|> parseAstInt
+          <|> parseAstString
+          <|> parseAstList
 
 bufferToCCSAst :: String -> Maybe [Ast]
 bufferToCCSAst buffer = case runParser (parseMany parseCCSAst) buffer of

@@ -1,0 +1,13 @@
+if (a == b) then: (
+    let x = 10;
+    if (a > x) then:
+        show("a is greater");
+    else:
+        show ("a is smaller");
+) else: (
+    let x = 11;
+    if (a < x) then:
+        show("x is greater");
+    else:
+        show ("x is smaller");
+)

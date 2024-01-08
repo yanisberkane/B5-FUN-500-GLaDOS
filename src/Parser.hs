@@ -111,8 +111,8 @@ parseSymbol :: Parser String
 parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])) (parseAnyChar "*+-/%!?<>=")
 
 parseBool :: Parser Bool
-parseBool = parseOr (parseOr (parseString "True") (parseString "true")  Data.Functor.$> True)
-                    (parseOr (parseString "False") (parseString "false") Data.Functor.$> False)
+parseBool = parseOr (parseString "True"  Data.Functor.$> True)
+                    (parseString "False" Data.Functor.$> False)
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"

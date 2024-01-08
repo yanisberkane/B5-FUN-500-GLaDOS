@@ -6,13 +6,16 @@ import Data.Maybe
 data Ast = AstInt Int
          | AstBool Bool
          | AstSymbol String
-         | AstList [Ast]
-         | Define Ast Ast
          | AstString String
-         | Lambda Ast Ast
-         | NamedFunc Ast Ast
-         | Separator Char
+         | AstList [Ast]
+         | Assign Ast Ast
+         | Define Ast Ast
          | If Ast Ast Ast
+         | Lambda Ast Ast
+         | NamedCall Ast Ast
+         | Call Ast Ast
+         | Separator Char
+         | AstNone
          deriving (Show, Eq)
 
 type Env = Map.Map String Ast
