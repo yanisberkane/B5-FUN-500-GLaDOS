@@ -4,11 +4,10 @@ data Value = IntValue Int
             | BoolValue Bool
             | Operator Operator
             | Function Insts
-            -- | UIntValue Int
             -- | SymbolValue String
             -- | CharValue Char
             -- | StringValue String
-            -- | ListValue [Value]
+            | ListValue [Value]
             deriving (Show, Eq)
 
 data Operator = Add
@@ -29,6 +28,7 @@ data Instruction = Push Value
                  | JumpIfFalse Int -- Jump to instruction at index if top of stack is false
                  | PushArg Int -- Push argument at index of arguments list to stack
                  | PushEnv String -- Push value of variable with name to stack
+                 | OperateOnList Operator -- Apply instructions to list on top of stack
                  deriving (Show, Eq)
 
 type Stack = [Value]
