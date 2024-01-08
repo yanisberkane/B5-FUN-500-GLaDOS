@@ -1,9 +1,13 @@
 module VMExec where
 
-import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, Env, safeIndex)
+import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
 
-execute :: Args -> Env -> VMState -> Either String VMState
-execute args env (stack, PushEnv name : insts) = case lookup name env of
+execute :: Args -> VMEnv -> VMState -> Either String VMState
+execute args env (ListValue xs : stack, OperateOnList operator : insts) =
+    case executeListOperation operator xs of
+        Left err -> Left err
+        Right newValue -> execute args env (newValue : stack, insts)
+execute args env (stack, PushVMEnv name : insts) = case lookup name env of
     Just (Function insts') -> execute args env (stack, insts' ++ insts)
     Just value -> execute args env (value : stack, insts)
     Nothing -> Left $ "Error: Variable " ++ name ++ " not found"
@@ -47,3 +51,26 @@ executeOperation Eq (BoolValue a : BoolValue b : stack) = Right (BoolValue (a ==
 executeOperation Eq _ = Left "Error: Eq needs two arguments of the same type"
 executeOperation Less (IntValue a : IntValue b : stack) = Right (BoolValue (a < b) : stack)
 executeOperation Less _ = Left "Error: Less needs two arguments of the same type"
+executeOperation Concat (StringValue a : StringValue b : stack) = Right (StringValue (a ++ b) : stack)
+executeOperation Concat _ = Left "Error: Concat needs two arguments"
+
+executeListOperation :: Operator -> [Value] -> Either String Value
+executeListOperation Add xs = Right $ IntValue $ sum [x | IntValue x <- xs]
+executeListOperation Sub (x:xs) = Right $ IntValue $ foldl (-) (toInt x) [toInt x' | x' <- xs]
+    where toInt (IntValue x) = x
+executeListOperation Sub _ = Left "Error: Sub needs at least one argument"
+executeListOperation Mul xs = Right $ IntValue $ product [x | IntValue x <- xs]
+executeListOperation Div (x:xs) = Right $ IntValue $ foldl (div) (toInt x) [toInt x' | x' <- xs]
+    where toInt (IntValue x) = x
+executeListOperation Div _ = Left "Error: Div needs at least one argument"
+executeListOperation Mod (x:xs) = Right $ IntValue $ foldl (mod) (toInt x) [toInt x' | x' <- xs]
+    where toInt (IntValue x) = x
+executeListOperation Mod _ = Left "Error: Mod needs at least one argument"
+executeListOperation And xs = Right $ BoolValue $ and [x | BoolValue x <- xs]
+executeListOperation Or xs = Right $ BoolValue $ or [x | BoolValue x <- xs]
+executeListOperation Not (BoolValue x:_) = Right $ BoolValue $ not x
+executeListOperation Not _ = Left "Error: Not needs one boolean argument"
+executeListOperation Eq (x:xs) = Right $ BoolValue $ and [x == x' | x' <- xs]
+executeListOperation Eq _ = Left "Error: Eq needs at least one argument"
+executeListOperation Less (IntValue x : xs) = Right $ BoolValue $ and [x < x' | IntValue x' <- xs]
+executeListOperation Less _ = Left "Error: Less needs at least one argument"
