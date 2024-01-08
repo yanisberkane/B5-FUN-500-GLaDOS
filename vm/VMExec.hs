@@ -1,13 +1,13 @@
 module VMExec where
 
-import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, Env, safeIndex)
+import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
 
-execute :: Args -> Env -> VMState -> Either String VMState
+execute :: Args -> VMEnv -> VMState -> Either String VMState
 execute args env (ListValue xs : stack, OperateOnList operator : insts) =
     case executeListOperation operator xs of
         Left err -> Left err
         Right newValue -> execute args env (newValue : stack, insts)
-execute args env (stack, PushEnv name : insts) = case lookup name env of
+execute args env (stack, PushVMEnv name : insts) = case lookup name env of
     Just (Function insts') -> execute args env (stack, insts' ++ insts)
     Just value -> execute args env (value : stack, insts)
     Nothing -> Left $ "Error: Variable " ++ name ++ " not found"
@@ -51,6 +51,8 @@ executeOperation Eq (BoolValue a : BoolValue b : stack) = Right (BoolValue (a ==
 executeOperation Eq _ = Left "Error: Eq needs two arguments of the same type"
 executeOperation Less (IntValue a : IntValue b : stack) = Right (BoolValue (a < b) : stack)
 executeOperation Less _ = Left "Error: Less needs two arguments of the same type"
+executeOperation Concat (StringValue a : StringValue b : stack) = Right (StringValue (a ++ b) : stack)
+executeOperation Concat _ = Left "Error: Concat needs two arguments"
 
 executeListOperation :: Operator -> [Value] -> Either String Value
 executeListOperation Add xs = Right $ IntValue $ sum [x | IntValue x <- xs]

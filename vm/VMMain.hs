@@ -6,6 +6,13 @@ import Control.Monad
 import VMErrorHandler (formatError, handleError, VMErrorType(..))
 import System.IO.Error (catchIOError, isDoesNotExistError)
 import System.Exit (exitFailure)
+import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
+import qualified Data.Map as Map
+
+-- processContent :: String -> IO ()
+-- processContent content
+--     | null content = handleError $ FileError "No input provided."
+--     | otherwise = maybe (handleError $ ParsingError "Failed to parse the content.") (processExpressions Map.empty) (stringToSExpr content)
 
 processFile :: FilePath -> IO ()
 processFile filename
