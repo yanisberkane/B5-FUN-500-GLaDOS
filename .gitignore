@@ -1,7 +1,7 @@
 .stack-work/
 *~
 glados
-glados-vm
 glados-test
 .vscode/*
 *.exec
+Main.mix
