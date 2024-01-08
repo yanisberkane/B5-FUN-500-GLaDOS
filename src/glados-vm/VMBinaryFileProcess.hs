@@ -10,27 +10,13 @@ instance Binary Value where
     put (Function insts) = put (3 :: Int) >> put insts
     put (StringValue s) = put (4 :: Int) >> put s
     put (ListValue l) = put (5 :: Int) >> put l
-    get = do
-        tag <- get :: Get Int
-        case tag of
-            0 -> do
-                i <- get
-                return $ IntValue i
-            1 -> do
-                b <- get
-                return $ BoolValue b
-            2 -> do
-                o <- get
-                return $ Operator o
-            3 -> do
-                insts <- get
-                return $ Function insts
-            4 -> do
-                s <- get
-                return $ StringValue s
-            5 -> do
-                l <- get
-                return $ ListValue l
+    get = (get :: Get Int) >>= \tag -> case tag of
+        0 -> get >>= \i -> return $ IntValue i
+        1 -> get >>= \b -> return $ BoolValue b
+        2 -> get >>= \o -> return $ Operator o
+        3 -> get >>= \insts -> return $ Function insts
+        4 -> get >>= \s -> return $ StringValue s
+        5 -> get >>= \l -> return $ ListValue l
 
 instance Binary Operator where
     put Add = put (0 :: Int)
@@ -44,20 +30,18 @@ instance Binary Operator where
     put Eq = put (8 :: Int)
     put Less = put (9 :: Int)
     put Concat = put (10 :: Int)
-    get = do
-        tag <- get :: Get Int
-        case tag of
-            0 -> return Add
-            1 -> return Sub
-            2 -> return Mul
-            3 -> return Div
-            4 -> return Mod
-            5 -> return And
-            6 -> return Or
-            7 -> return Not
-            8 -> return Eq
-            9 -> return Less
-            10 -> return Concat
+    get = (get :: Get Int) >>= \tag -> case tag of
+        0 -> return Add
+        1 -> return Sub
+        2 -> return Mul
+        3 -> return Div
+        4 -> return Mod
+        5 -> return And
+        6 -> return Or
+        7 -> return Not
+        8 -> return Eq
+        9 -> return Less
+        10 -> return Concat
 
 instance Binary Instruction where
     put (Push v) = put (0 :: Int) >> put v
@@ -67,26 +51,14 @@ instance Binary Instruction where
     put (PushArg i) = put (4 :: Int) >> put i
     put (PushVMEnv s) = put (5 :: Int) >> put s
     put (OperateOnList o) = put (6 :: Int) >> put o
-    get = do
-        tag <- get :: Get Int
-        case tag of
-            0 -> do
-                v <- get
-                return $ Push v
-            1 -> return Call
-            2 -> return Ret
-            3 -> do
-                i <- get
-                return $ JumpIfFalse i
-            4 -> do
-                i <- get
-                return $ PushArg i
-            5 -> do
-                s <- get
-                return $ PushVMEnv s
-            6 -> do
-                o <- get
-                return $ OperateOnList o
+    get = (get :: Get Int) >>= \tag -> case tag of
+        0 -> get >>= \v -> return $ Push v
+        1 -> return Call
+        2 -> return Ret
+        3 -> get >>= \i -> return $ JumpIfFalse i
+        4 -> get >>= \i -> return $ PushArg i
+        5 -> get >>= \s -> return $ PushVMEnv s
+        6 -> get >>= \o -> return $ OperateOnList o
 
 writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO ()
 writeStateToFile filename envinsts =  encodeFile filename envinsts
