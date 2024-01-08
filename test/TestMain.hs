@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import Test.HUnit
 import Interpreter (evaluate)
 import Types (Ast(..), Env)
@@ -471,3 +472,5 @@ main = do
     if errors counts + failures counts > 0
         then exitFailure
         else exitSuccess
+=======
+>>>>>>> Stashed changes

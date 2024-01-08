@@ -5,7 +5,7 @@ version:             0.1.0.0
 executable glados
   hs-source-dirs:      src
   main-is:             Main.hs
-  other-modules:       ErrorHandler FileProcessing TerminalMode Operators Interpreter Types Parser ParserSExpr
+  other-modules:       ErrorHandler TerminalMode Operators Types Parser
   build-depends:       base >= 4.7 && < 5,
                        filepath,
                        containers
@@ -19,7 +19,7 @@ executable glados-vm
                        containers
 library
   hs-source-dirs:      src
-  exposed-modules:     ErrorHandler FileProcessing TerminalMode Operators Interpreter Types Parser ParserSExpr
+  exposed-modules:     ErrorHandler TerminalMode Operators Types Parser
   build-depends:       base >= 4.7 && < 5
                      , filepath
                      , containers

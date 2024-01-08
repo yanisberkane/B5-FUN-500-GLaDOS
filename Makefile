@@ -13,8 +13,9 @@ setup:
 build: clean
 	stack build --copy-bins --local-bin-path .
 
-test:
-	stack test --coverage
+test: clean
+	stack build --copy-bins --local-bin-path .
+#	stack test --coverage
 
 clean:
 	stack clean

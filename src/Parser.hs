@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Parser (
     Parser(..),
     parseChar,
@@ -13,12 +14,15 @@ module Parser (
     parseQuotedSymbol,
     parseWhiteSpace,
     parseString,
+    parseBool,
+    parseNot,
     parseNoneOf) where
 import System.IO
 import Data.Maybe
 import Control.Applicative
+import qualified Data.Functor
 
-data Parser a = Parser {
+newtype Parser a = Parser {
     runParser :: String -> Maybe (a, String)
 }
 
@@ -36,7 +40,7 @@ instance Applicative Parser where
         Nothing -> Nothing
 
 instance Alternative Parser where
-    empty = Parser $ \_ -> Nothing
+    empty = Parser $ const Nothing
     p1 <|> p2 = Parser $ \str -> case runParser p1 str of
         Just (x, xs) -> Just (x, xs)
         Nothing -> runParser p2 str
@@ -48,17 +52,22 @@ instance Monad Parser where
         Nothing -> Nothing
 
 parseChar :: Char -> Parser Char
-parseChar c = Parser $ \str -> case str of
+parseChar c = Parser $ \case
     (x:xs) | c == x -> Just (c, xs)
     _ -> Nothing
 
 parseAnyChar :: String -> Parser Char
-parseAnyChar str = Parser $ \str' -> case str' of
+parseAnyChar str = Parser $ \case
     (x:xs) | x `elem` str -> Just (x, xs)
     _ -> Nothing
 
 parseOr :: Parser a -> Parser a -> Parser a
 parseOr p1 p2 = Parser $ \str -> runParser p1 str <|> runParser p2 str
+
+parseNot :: Parser a -> Parser ()
+parseNot p = Parser $ \str -> case runParser p str of
+    Just _ -> Nothing
+    Nothing -> Just ((), str)
 
 parseAnd :: Parser a -> Parser b -> Parser (a, b)
 parseAnd p1 p2 = Parser $ \str -> case runParser p1 str of
@@ -85,7 +94,7 @@ parseSome :: Parser a -> Parser [a]
 parseSome p = (:) <$> p <*> parseMany p
 
 parseNoneOf :: String -> Parser Char
-parseNoneOf str = Parser $ \str' -> case str' of
+parseNoneOf str = Parser $ \case
     (x:xs) | x `notElem` str -> Just (x, xs)
     _ -> Nothing
 
@@ -96,16 +105,17 @@ parseInt :: Parser Int
 parseInt = (\x y -> if x == '-' then -y else y) <$> parseOr (parseChar '-') (parseChar '+') <*> parseUInt
 
 parseQuotedSymbol :: Parser String
-parseQuotedSymbol = do parseChar '"'
-                       str <- parseMany $ parseNoneOf "\""
-                       parseChar '"'
-                       return str
+parseQuotedSymbol = parseChar '\"' *> parseSome (parseNoneOf "\"") <* parseChar '\"'
 
 parseSymbol :: Parser String
 parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])) (parseAnyChar "*+-/%!?<>=")
+
+parseBool :: Parser Bool
+parseBool = parseOr (parseOr (parseString "True") (parseString "true")  Data.Functor.$> True)
+                    (parseOr (parseString "False") (parseString "false") Data.Functor.$> False)
 
 parseWhiteSpace :: Parser String
 parseWhiteSpace = parseSome $ parseAnyChar " \t\n"
 
 parseString :: String -> Parser String
-parseString s = traverse parseChar s
+parseString = traverse parseChar
