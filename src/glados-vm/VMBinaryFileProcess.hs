@@ -45,20 +45,22 @@ instance Binary Operator where
 
 instance Binary Instruction where
     put (Push v) = put (0 :: Int) >> put v
-    put Call = put (1 :: Int)
+    put (Call i) = put (1 :: Int) >> put i
     put Ret = put (2 :: Int)
     put (JumpIfFalse i) = put (3 :: Int) >> put i
     put (PushArg i) = put (4 :: Int) >> put i
     put (PushVMEnv s) = put (5 :: Int) >> put s
     put (OperateOnList o) = put (6 :: Int) >> put o
+    put (AssignEnvValue s) = put (7 :: Int) >> put s
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> get >>= \v -> return $ Push v
-        1 -> return Call
+        1 -> get >>= \i -> return $ Call i
         2 -> return Ret
         3 -> get >>= \i -> return $ JumpIfFalse i
         4 -> get >>= \i -> return $ PushArg i
         5 -> get >>= \s -> return $ PushVMEnv s
         6 -> get >>= \o -> return $ OperateOnList o
+        7 -> get >>= \s -> return $ AssignEnvValue s
 
 writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO ()
 writeStateToFile filename envinsts =  encodeFile filename envinsts

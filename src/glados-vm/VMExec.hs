@@ -2,6 +2,9 @@ module VMExec where
 
 import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
 
+pushToArgs :: Value -> Args -> Args
+pushToArgs value args = value : args
+
 execute :: Args -> VMEnv -> VMState -> Either String VMState
 execute args env (ListValue xs : stack, OperateOnList operator : insts) =
     case executeListOperation operator xs of
@@ -11,11 +14,13 @@ execute args env (stack, PushVMEnv name : insts) = case lookup name env of
     Just (Function insts') -> execute args env (stack, insts' ++ insts)
     Just value -> execute args env (value : stack, insts)
     Nothing -> Left $ "Error: Variable " ++ name ++ " not found"
-execute args env (stack, Call : insts) = case stack of
-    (Operator operator : stack') -> case executeOperation operator stack' of
-        Left err -> Left err
-        Right newStack -> execute args env (newStack, insts)
-    (Function functionInsts : stack') -> execute args env (stack', functionInsts ++ insts)
+execute args env (stack, Call i : insts) = case safeIndex stack i of
+    -- you have to push i arguments to the Args list before calling:
+
+    -- (Operator operator : stack') -> case executeOperation operator stack' of
+    --     Left err -> Left err
+    --     Right newStack -> execute args env (newStack, insts)
+    -- (Function functionInsts : stack') -> execute args env (stack', functionInsts ++ insts)
     _ -> Left "Error: Call needs an operator or a function on top of the stack"
 execute args env (stack, Push value : insts) = execute args env (value : stack, insts)
 execute args env (stack, Ret : _) = Right (stack, [])
