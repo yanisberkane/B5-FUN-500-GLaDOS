@@ -3,9 +3,9 @@ name:                glados
 version:             0.1.0.0
 
 executable glados
-  hs-source-dirs:      src src/glados-vm
+  hs-source-dirs:      src/glados-main src/glados-vm
   main-is:             Main.hs
-  other-modules:       ErrorHandler CCSAstParser Types Parser VMTypes VMBinaryFileProcess
+  other-modules:       ErrorHandler CCSAstParser Types FileProcessor Interpreter Parser VMTypes VMBinaryFileProcess Formatter
   build-depends:       base >= 4.7 && < 5,
                        filepath,
                        containers,
@@ -20,11 +20,12 @@ executable glados-vm
                        containers,
                        binary
 library
-  hs-source-dirs:      src
-  exposed-modules:     ErrorHandler CCSAstParser Types Parser
+  hs-source-dirs:      src/glados-main src/glados-vm
+  exposed-modules:     ErrorHandler CCSAstParser Types Parser FileProcessor Interpreter VMTypes VMBinaryFileProcess Formatter
   build-depends:       base >= 4.7 && < 5
                      , filepath
                      , containers
+                      , binary
   default-language:    Haskell2010
 
 test-suite glados-test

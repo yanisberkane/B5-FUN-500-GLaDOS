@@ -62,7 +62,7 @@ parseNamedFunc = parseMany parseWhiteSpace *> parseAstSymbol >>= \name ->
 parseCall :: Parser Ast
 parseCall = parseMany parseWhiteSpace *> parseAstSymbol >>= \name ->
     parseMany parseWhiteSpace *> parseAstList >>= \args -> parseMany parseWhiteSpace <* parseSeparator
-    Data.Functor.$> Call name args
+    Data.Functor.$> AstCall name args
 
 parseCCSAst :: Parser Ast
 parseCCSAst = parseIf

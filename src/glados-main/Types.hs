@@ -13,7 +13,7 @@ data Ast = AstInt Int
          | If Ast Ast Ast
          | Lambda Ast Ast
          | NamedCall Ast Ast
-         | Call Ast Ast
+         | AstCall Ast Ast
          | Separator Char
          | AstNone
          deriving (Show, Eq)
