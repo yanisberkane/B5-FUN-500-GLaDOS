@@ -1,4 +1,7 @@
+let a = 1;
+let b = 1;
+
 if (a == b) then:
-    (
-        let x = 10;
-    )
+(
+    let x = 10;
+)
