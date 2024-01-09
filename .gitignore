@@ -6,3 +6,4 @@ glados-test
 .vscode/*
 *.exec
 Main.mix
+*.dz

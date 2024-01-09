@@ -23,10 +23,12 @@ parseSeparator :: Parser Ast
 parseSeparator = Separator <$> (parseMany parseWhiteSpace *> parseChar ';')
 
 parseDefine :: Parser Ast
-parseDefine = parseMany parseWhiteSpace *> parseString "let" *> parseMany parseWhiteSpace
+parseDefine = parseMany parseWhiteSpace *>
+    parseOr (parseString "let") (parseString "var") *> parseMany parseWhiteSpace
     *> parseAstSymbol >>= \varName -> parseMany parseWhiteSpace *>
-    parseChar '=' *> parseMany parseWhiteSpace *> parseCCSAstExceptSymbol >>= \value -> parseMany parseWhiteSpace
-    Data.Functor.$> Define varName value <* parseSeparator
+    parseChar '=' *> parseMany parseWhiteSpace *> parseCCSAstExceptSymbol
+    >>= \value -> parseMany parseWhiteSpace <* parseSeparator
+    Data.Functor.$> Define varName value
 
 parseAssign :: Parser Ast
 parseAssign = parseMany parseWhiteSpace *> parseAstSymbol >>= \varName ->
@@ -36,22 +38,29 @@ parseAssign = parseMany parseWhiteSpace *> parseAstSymbol >>= \varName ->
 
 parseAstList :: Parser Ast
 parseAstList = parseMany parseWhiteSpace *> parseChar '(' *> parseMany parseWhiteSpace
-    *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace
-    Data.Functor.$> AstList args <* parseChar ')'
+    *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar ')'
+    Data.Functor.$> AstList args
+
+parseBody :: Parser Ast
+parseBody = parseMany parseWhiteSpace *> parseChar '{' *> parseMany parseWhiteSpace
+    *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar '}'
+    Data.Functor.$> AstList args
 
 parseIf :: Parser Ast
 parseIf = parseMany parseWhiteSpace *> parseString "if" *> parseMany parseWhiteSpace
-    *> parseCCSAst >>= \cond -> parseMany parseWhiteSpace *> parseString "then:" *> parseSome parseWhiteSpace
+    *> parseCCSAst >>= \cond -> parseMany parseWhiteSpace *>
+    parseOr (parseString "then:") (parseString ":") *> parseSome parseWhiteSpace
     *> parseCCSAst >>= \thenExpr -> parseMany parseWhiteSpace *>
     parseOr
-    (parseString "else:" *> parseSome parseWhiteSpace *> parseCCSAst >>= \elseExpr -> parseMany parseWhiteSpace
-    Data.Functor.$> If cond thenExpr elseExpr)
+    (parseOr (parseString "else:") (parseString "?") *> parseSome parseWhiteSpace *>
+    parseCCSAst >>= \elseExpr -> parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
     (parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr AstNone)
 
 parseLambda :: Parser Ast
 parseLambda = parseMany parseWhiteSpace *> parseAstList >>= \params ->
     parseSome parseWhiteSpace *> parseString "=>" *> parseSome parseWhiteSpace *>
-    parseAstList >>= \body -> parseMany parseWhiteSpace
+    parseOr parseAstList parseBody
+    >>= \body -> parseMany parseWhiteSpace
     Data.Functor.$> Lambda params body
 
 parseNamedFunc :: Parser Ast
@@ -71,10 +80,11 @@ parseCCSAst = parseIf
           <|> parseNamedFunc
           <|> parseLambda
           <|> parseCall
+          <|> parseBody
+          <|> parseAstList
           <|> parseAstBool
           <|> parseAstInt
           <|> parseAstString
-          <|> parseAstList
           <|> parseAstSymbol
 
 parseCCSAstExceptSymbol :: Parser Ast
@@ -84,10 +94,11 @@ parseCCSAstExceptSymbol = parseIf
           <|> parseNamedFunc
           <|> parseLambda
           <|> parseCall
+          <|> parseBody
+          <|> parseAstList
           <|> parseAstBool
           <|> parseAstInt
           <|> parseAstString
-          <|> parseAstList
 
 bufferToCCSAst :: String -> Maybe [Ast]
 bufferToCCSAst buffer = case runParser (parseMany parseCCSAst) buffer of
