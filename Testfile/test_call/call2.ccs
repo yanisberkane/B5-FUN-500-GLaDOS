@@ -1,1 +1,9 @@
+let a = 5;
+let b = 10;
+let c = 3;
+
+test(a b c) => (
+    let d = (a + b + c);
+);
+
 test(a b c);

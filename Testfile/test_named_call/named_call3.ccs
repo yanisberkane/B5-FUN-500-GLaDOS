@@ -1,3 +1,9 @@
+let a = 5;
+let b = 10;
+let c = 2;
+
 test (a b c) => (
     let x = (a - b + c);
 );
+
+test(a b c);

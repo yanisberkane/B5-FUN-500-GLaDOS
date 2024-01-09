@@ -1,1 +1,5 @@
+test(arg) => (
+    let x = arg;
+);
+
 test("hi");
