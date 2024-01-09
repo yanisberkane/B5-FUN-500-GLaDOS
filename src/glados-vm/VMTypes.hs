@@ -20,16 +20,18 @@ data Operator = Add
             | Not
             | Eq
             | Less
+            | Sup
             | Concat
             deriving (Show, Eq)
 
 data Instruction = Push Value
-                 | Call
+                 | Call Int
                  | Ret
                  | JumpIfFalse Int -- Jump to instruction at index if top of stack is false
                  | PushArg Int -- Push argument at index of arguments list to stack
                  | PushVMEnv String -- Push value of variable with name to stack
                  | OperateOnList Operator -- Apply instructions to list on top of stack
+                 | AssignEnvValue String -- Assign value on top of stack to Env variable with name
                  deriving (Show, Eq)
 
 type Stack = [Value]
