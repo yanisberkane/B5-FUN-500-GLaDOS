@@ -14,14 +14,19 @@ execute args env (stack, PushVMEnv name : insts) = case lookup name env of
     Just (Function insts') -> execute args env (stack, insts' ++ insts)
     Just value -> execute args env (value : stack, insts)
     Nothing -> Left $ "Error: Variable " ++ name ++ " not found"
-execute args env (stack, Call i : insts) = case safeIndex stack i of
+execute args env (stack, Call nb : insts) = 
+    if length stack < nb
+    then Left "Error: Not enough arguments on the stack for Call"
+    else let (argsToPush, restOfStack) = splitAt nb stack
+             newArgs = reverse argsToPush ++ args
+         in execute newArgs env (restOfStack, insts)
     -- you have to push i arguments to the Args list before calling:
 
     -- (Operator operator : stack') -> case executeOperation operator stack' of
     --     Left err -> Left err
     --     Right newStack -> execute args env (newStack, insts)
     -- (Function functionInsts : stack') -> execute args env (stack', functionInsts ++ insts)
-    _ -> Left "Error: Call needs an operator or a function on top of the stack"
+    -- _ -> Left "Error: Call needs an operator or a function on top of the stack"
 execute args env (stack, Push value : insts) = execute args env (value : stack, insts)
 execute args env (stack, Ret : _) = Right (stack, [])
 execute args env (BoolValue False : stack, JumpIfFalse n : insts) = execute args env (stack, drop n insts)
@@ -56,6 +61,8 @@ executeOperation Eq (BoolValue a : BoolValue b : stack) = Right (BoolValue (a ==
 executeOperation Eq _ = Left "Error: Eq needs two arguments of the same type"
 executeOperation Less (IntValue a : IntValue b : stack) = Right (BoolValue (a < b) : stack)
 executeOperation Less _ = Left "Error: Less needs two arguments of the same type"
+executeOperation Sup (IntValue a : IntValue b : stack) = Right (BoolValue (a > b) : stack)
+executeOperation Sup _ = Left "Error: Sup needs two arguments of the same type"
 executeOperation Concat (StringValue a : StringValue b : stack) = Right (StringValue (a ++ b) : stack)
 executeOperation Concat _ = Left "Error: Concat needs two arguments"
 

@@ -20,6 +20,7 @@ data Operator = Add
             | Not
             | Eq
             | Less
+            | Sup
             | Concat
             deriving (Show, Eq)
 

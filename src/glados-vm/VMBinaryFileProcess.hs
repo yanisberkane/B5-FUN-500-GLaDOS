@@ -29,7 +29,8 @@ instance Binary Operator where
     put Not = put (7 :: Int)
     put Eq = put (8 :: Int)
     put Less = put (9 :: Int)
-    put Concat = put (10 :: Int)
+    put Sup = put (10 :: Int)
+    put Concat = put (11 :: Int)
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> return Add
         1 -> return Sub
@@ -41,7 +42,8 @@ instance Binary Operator where
         7 -> return Not
         8 -> return Eq
         9 -> return Less
-        10 -> return Concat
+        10 -> return Sup
+        11 -> return Concat
 
 instance Binary Instruction where
     put (Push v) = put (0 :: Int) >> put v
