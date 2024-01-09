@@ -22,59 +22,69 @@ parseAstString = AstString <$> (parseMany parseWhiteSpace *> parseQuotedSymbol)
 parseSeparator :: Parser Ast
 parseSeparator = Separator <$> (parseMany parseWhiteSpace *> parseChar ';')
 
+parseAstOperator :: Parser Ast
+parseAstOperator = Operator <$>
+    (parseMany parseWhiteSpace *> parseOperator)
+
+parseAstLogicOperator :: Parser Ast
+parseAstLogicOperator = LogicOperator <$>
+    (parseMany parseWhiteSpace *> parseLogicOperator)
+
 parseDefine :: Parser Ast
 parseDefine = parseMany parseWhiteSpace *>
-    parseOr (parseString "let") (parseString "var") *> parseMany parseWhiteSpace
+    parseOr (parseString "let") (parseString "var")
     *> parseAstSymbol >>= \varName -> parseMany parseWhiteSpace *>
-    parseChar '=' *> parseMany parseWhiteSpace *> parseCCSAstExceptSymbol
+    parseChar '=' *> parseCCSAst
     >>= \value -> parseMany parseWhiteSpace <* parseSeparator
     Data.Functor.$> Define varName value
 
 parseAssign :: Parser Ast
-parseAssign = parseMany parseWhiteSpace *> parseAstSymbol >>= \varName ->
-    parseMany parseWhiteSpace *> parseChar '=' *> parseMany parseWhiteSpace
-    *> parseCCSAst >>= \value -> parseMany parseWhiteSpace <* parseSeparator
+parseAssign = parseAstSymbol >>= \varName ->
+    parseMany parseWhiteSpace *> parseChar '='
+    *> parseCCSAst >>= \value -> parseSeparator
     Data.Functor.$> Assign varName value
 
 parseAstList :: Parser Ast
-parseAstList = parseMany parseWhiteSpace *> parseChar '(' *> parseMany parseWhiteSpace
+parseAstList = parseMany parseWhiteSpace *> parseChar '('
     *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar ')'
     Data.Functor.$> AstList args
 
 parseBody :: Parser Ast
-parseBody = parseMany parseWhiteSpace *> parseChar '{' *> parseMany parseWhiteSpace
+parseBody = parseMany parseWhiteSpace *> parseChar '{'
     *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar '}'
     Data.Functor.$> AstList args
 
 parseIf :: Parser Ast
-parseIf = parseMany parseWhiteSpace *> parseString "if" *> parseMany parseWhiteSpace
-    *> parseCCSAst >>= \cond -> parseMany parseWhiteSpace *>
-    parseOr (parseString "then:") (parseString ":") *> parseSome parseWhiteSpace
-    *> parseCCSAst >>= \thenExpr -> parseMany parseWhiteSpace *>
-    parseOr
-    (parseOr (parseString "else:") (parseString "?") *> parseSome parseWhiteSpace *>
-    parseCCSAst >>= \elseExpr -> parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
-    (parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr AstNone)
+parseIf = parseOr (parseMany parseWhiteSpace *> parseString "if" *> parseAstList >>=
+    \cond -> parseMany parseWhiteSpace *> parseString "then:" *> parseCCSAst >>= \thenExpr ->
+    parseMany parseWhiteSpace *> parseOr
+    (parseString "else:" *> parseCCSAst >>= \elseExpr -> parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
+    (parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr AstNone))
+    (parseAstList >>= \cond -> parseMany parseWhiteSpace *> parseChar '?' *> parseCCSAst >>= \thenExpr ->
+    parseMany parseWhiteSpace *> parseChar ':' *> parseCCSAst >>= \elseExpr ->
+    parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
 
 parseLambda :: Parser Ast
-parseLambda = parseMany parseWhiteSpace *> parseAstList >>= \params ->
-    parseSome parseWhiteSpace *> parseString "=>" *> parseSome parseWhiteSpace *>
+parseLambda = parseAstList >>= \params ->
+    parseMany parseWhiteSpace *> parseString "=>" *>
     parseOr parseAstList parseBody
     >>= \body -> parseMany parseWhiteSpace
     Data.Functor.$> Lambda params body
 
 parseNamedFunc :: Parser Ast
-parseNamedFunc = parseMany parseWhiteSpace *> parseAstSymbol >>= \name ->
-    parseLambda >>= \lambda -> parseMany parseWhiteSpace <* parseSeparator
+parseNamedFunc = parseAstSymbol >>= \name ->
+    parseLambda >>= \lambda -> parseSeparator
     Data.Functor.$> NamedCall name lambda
 
 parseCall :: Parser Ast
-parseCall = parseMany parseWhiteSpace *> parseAstSymbol >>= \name ->
-    parseMany parseWhiteSpace *> parseAstList >>= \args -> parseMany parseWhiteSpace <* parseSeparator
+parseCall = parseAstSymbol >>= \name ->
+    parseAstList >>= \args -> parseSeparator
     Data.Functor.$> AstCall name args
 
 parseCCSAst :: Parser Ast
-parseCCSAst = parseIf
+parseCCSAst = parseAstLogicOperator
+          <|> parseAstOperator
+          <|> parseIf
           <|> parseDefine
           <|> parseAssign
           <|> parseNamedFunc
@@ -86,19 +96,6 @@ parseCCSAst = parseIf
           <|> parseAstInt
           <|> parseAstString
           <|> parseAstSymbol
-
-parseCCSAstExceptSymbol :: Parser Ast
-parseCCSAstExceptSymbol = parseIf
-          <|> parseDefine
-          <|> parseAssign
-          <|> parseNamedFunc
-          <|> parseLambda
-          <|> parseCall
-          <|> parseBody
-          <|> parseAstList
-          <|> parseAstBool
-          <|> parseAstInt
-          <|> parseAstString
 
 bufferToCCSAst :: String -> Maybe [Ast]
 bufferToCCSAst buffer = case runParser (parseMany parseCCSAst) buffer of

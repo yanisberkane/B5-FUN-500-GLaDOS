@@ -1,7 +1,7 @@
 let a = 5;
 let b = 5;
 
-if (a == b) then: (
+if (a <= b) then: (
     let x = 10;
 ) else: (
     let x = 11;

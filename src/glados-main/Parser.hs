@@ -16,6 +16,8 @@ module Parser (
     parseString,
     parseBool,
     parseNot,
+    parseOperator,
+    parseLogicOperator,
     parseNoneOf) where
 import System.IO
 import Data.Maybe
@@ -64,10 +66,10 @@ parseAnyChar str = Parser $ \case
 parseOr :: Parser a -> Parser a -> Parser a
 parseOr p1 p2 = Parser $ \str -> runParser p1 str <|> runParser p2 str
 
-parseNot :: Parser a -> Parser ()
+parseNot :: Parser a -> Parser a
 parseNot p = Parser $ \str -> case runParser p str of
     Just _ -> Nothing
-    Nothing -> Just ((), str)
+    Nothing -> Just (undefined, str)
 
 parseAnd :: Parser a -> Parser b -> Parser (a, b)
 parseAnd p1 p2 = Parser $ \str -> case runParser p1 str of
@@ -101,6 +103,16 @@ parseNoneOf str = Parser $ \case
 parseUInt :: Parser Int
 parseUInt = read <$> parseSome (parseAnyChar "0123456789")
 
+parseOperator :: Parser String
+parseOperator = parseSome $ parseAnyChar "+-*/%"
+
+parseLogicOperator :: Parser String
+parseLogicOperator = parseOr (parseString "&&") (parseString "||")
+                 <|> parseOr (parseString "==") (parseString "!=")
+                 <|> parseOr (parseString "<=") (parseString ">=")
+                 <|> parseOr (parseString "<") (parseString ">")
+                 <|> parseString "!"
+
 parseInt :: Parser Int
 parseInt = (\x y -> if x == '-' then -y else y) <$> parseOr (parseChar '-') (parseChar '+') <*> parseUInt
 
@@ -108,7 +120,7 @@ parseQuotedSymbol :: Parser String
 parseQuotedSymbol = parseChar '\"' *> parseSome (parseNoneOf "\"") <* parseChar '\"'
 
 parseSymbol :: Parser String
-parseSymbol = parseSome $ parseOr (parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])) (parseAnyChar "*+-/%!?<>=")
+parseSymbol = parseSome $ parseOr (parseAnyChar ['a'..'z']) (parseAnyChar ['A'..'Z'])
 
 parseBool :: Parser Bool
 parseBool = parseOr (parseString "True"  Data.Functor.$> True)

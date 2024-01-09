@@ -1,4 +1,4 @@
 let x = (a b) => (
     if (a == b) then:
-        show("a equals b")
+        show("a equals b");
 );
