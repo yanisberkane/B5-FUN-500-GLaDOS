@@ -1,5 +1,6 @@
 test() => (
     let x = 5;
+    test();
 );
 
 test();

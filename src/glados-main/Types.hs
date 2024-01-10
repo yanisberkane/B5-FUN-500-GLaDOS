@@ -8,6 +8,7 @@ data Ast = AstInt Int
          | AstSymbol String
          | AstString String
          | AstList [Ast]
+         | AstMathOp Ast Ast Ast
          | Assign Ast Ast
          | Define Ast Ast
          | If Ast Ast Ast

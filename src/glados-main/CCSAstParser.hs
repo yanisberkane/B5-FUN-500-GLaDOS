@@ -54,6 +54,11 @@ parseBody = parseMany parseWhiteSpace *> parseChar '{'
     *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar '}'
     Data.Functor.$> AstList args
 
+parseArgList :: Parser Ast
+parseArgList = parseMany parseWhiteSpace *> parseChar '('
+    *> parseMany (parseCCSAst <* parseSome (parseChar ',')) >>= \args -> parseMany parseWhiteSpace <* parseChar ')'
+    Data.Functor.$> AstList args
+
 parseIf :: Parser Ast
 parseIf = parseOr (parseMany parseWhiteSpace *> parseString "if" *> parseAstList >>=
     \cond -> parseMany parseWhiteSpace *> parseString "then:" *> parseCCSAst >>= \thenExpr ->
@@ -65,7 +70,7 @@ parseIf = parseOr (parseMany parseWhiteSpace *> parseString "if" *> parseAstList
     parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
 
 parseLambda :: Parser Ast
-parseLambda = parseAstList >>= \params ->
+parseLambda = parseArgList >>= \params ->
     parseMany parseWhiteSpace *> parseString "=>" *>
     parseOr parseAstList parseBody
     >>= \body -> parseMany parseWhiteSpace
@@ -78,12 +83,20 @@ parseNamedFunc = parseAstSymbol >>= \name ->
 
 parseCall :: Parser Ast
 parseCall = parseAstSymbol >>= \name ->
-    parseAstList >>= \args -> parseSeparator
+    parseArgList >>= \args -> parseSeparator
     Data.Functor.$> AstCall name args
+
+parseMathOperation :: Parser Ast
+parseMathOperation = parseMany parseWhiteSpace
+    *> parseOr parseAstList (parseOr parseAstSymbol parseAstInt)  >>= \arg1 -> parseMany parseWhiteSpace
+    *> parseOperator >>= \op -> parseMany parseWhiteSpace
+    *> parseOr parseAstList (parseOr parseAstSymbol parseAstInt) >>= \arg2 -> parseMany parseWhiteSpace
+    Data.Functor.$> AstMathOp arg1 (Operator op) arg2
 
 parseCCSAst :: Parser Ast
 parseCCSAst = parseAstLogicOperator
           <|> parseAstOperator
+          <|> parseMathOperation
           <|> parseIf
           <|> parseDefine
           <|> parseAssign

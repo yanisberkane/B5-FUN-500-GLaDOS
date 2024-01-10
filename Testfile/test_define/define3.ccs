@@ -1,4 +1,1 @@
-let x = (a b) => (
-    if (a == b) then:
-        show("a equals b");
-);
+letx=(a b)=>(if(a==b)then:show("a equals b"););

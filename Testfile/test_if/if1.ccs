@@ -1,8 +1,6 @@
 let a = 1;
 let b = 1;
 
-(a == b)
-
 if (a == b) then:
 (
     let x = 10;
