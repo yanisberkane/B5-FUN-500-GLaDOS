@@ -54,6 +54,7 @@ instance Binary Instruction where
     put (PushVMEnv s) = put (5 :: Int) >> put s
     put (OperateOnList o) = put (6 :: Int) >> put o
     put (AssignEnvValue s) = put (7 :: Int) >> put s
+    put (CallOp) = put (8 :: Int)
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> get >>= \v -> return $ Push v
         1 -> get >>= \i -> return $ Call i
@@ -63,6 +64,7 @@ instance Binary Instruction where
         5 -> get >>= \s -> return $ PushVMEnv s
         6 -> get >>= \o -> return $ OperateOnList o
         7 -> get >>= \s -> return $ AssignEnvValue s
+        8 -> return CallOp
 
 writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO ()
 writeStateToFile filename envinsts =  encodeFile filename envinsts
