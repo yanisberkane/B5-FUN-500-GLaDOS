@@ -11,22 +11,26 @@ execute args env (ListValue xs : stack, OperateOnList operator : insts) =
         Left err -> Left err
         Right newValue -> execute args env (newValue : stack, insts)
 execute args env (stack, PushVMEnv name : insts) = case lookup name env of
-    Just (Function insts') -> execute args env (stack, insts' ++ insts)
+    Just (Function insts') -> execute args env (Function insts' : stack, insts)
     Just value -> execute args env (value : stack, insts)
     Nothing -> Left $ "Error: Variable " ++ name ++ " not found"
-execute args env (stack, Call nb : insts) = 
+execute args env (stack, AssignEnvValue name : insts) = case stack of
+    (value : stack') -> execute args ((name, value) : env) (stack', insts)
+    _ -> Left "Error: AssignEnvValue needs a value on top of the stack"
+execute args env (Function funcInsts : stack, Call nb : insts) = 
     if length stack < nb
-    then Left "Error: Not enough arguments on the stack for Call"
-    else let (argsToPush, restOfStack) = splitAt nb stack
-             newArgs = reverse argsToPush ++ args
-         in execute newArgs env (restOfStack, insts)
-    -- you have to push i arguments to the Args list before calling:
-
-    -- (Operator operator : stack') -> case executeOperation operator stack' of
-    --     Left err -> Left err
-    --     Right newStack -> execute args env (newStack, insts)
-    -- (Function functionInsts : stack') -> execute args env (stack', functionInsts ++ insts)
-    -- _ -> Left "Error: Call needs an operator or a function on top of the stack"
+    then Left $ "Error: Call needs " ++ show nb ++ " arguments"
+    else 
+        let
+            (args', stack') = splitAt nb stack
+            newArgs = foldr pushToArgs [] args'
+        in
+            execute newArgs env (stack', funcInsts ++ insts)
+execute args env (stack, CallOp : insts) = case stack of
+    (Operator operator : stack') -> case executeOperation operator stack' of
+        Left err -> Left err
+        Right newStack -> execute args env (newStack, insts)
+    _ -> Left "Error: CallOp needs an operator on top of the stack"
 execute args env (stack, Push value : insts) = execute args env (value : stack, insts)
 execute args env (stack, Ret : _) = Right (stack, [])
 execute args env (BoolValue False : stack, JumpIfFalse n : insts) = execute args env (stack, drop n insts)
@@ -35,7 +39,7 @@ execute args env (_, JumpIfFalse _ : _) = Left "Error: JumpIfFalse needs a boole
 execute args env (stack, PushArg i : insts) = case safeIndex args i of
     Just arg -> execute args env (arg : stack, insts)
     Nothing -> Left $ "Error: Argument index " ++ show i ++ " out of bounds"
-execute _ _ state@(_, []) = Right state
+execute args _ state@(_, []) = Right state
 
 executeOperation :: Operator -> Stack -> Either String Stack
 executeOperation Add (IntValue a : IntValue b : stack) = Right (IntValue (a + b) : stack)
