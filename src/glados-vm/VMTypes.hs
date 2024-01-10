@@ -26,6 +26,7 @@ data Operator = Add
 
 data Instruction = Push Value
                  | Call Int
+                 | CallOp
                  | Ret
                  | JumpIfFalse Int -- Jump to instruction at index if top of stack is false
                  | PushArg Int -- Push argument at index of arguments list to stack
