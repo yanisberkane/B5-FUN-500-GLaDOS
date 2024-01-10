@@ -37,8 +37,9 @@ data Instruction = Push Value
 
 type Stack = [Value]
 type Insts = [Instruction]
+type TempInsts = [Insts]
 type Args = [Value]
-type VMState = (Stack, Insts)
+type VMState = (Stack, Insts, TempInsts, [Args])
 type VMEnv = [(String, Value)]
 
 safeIndex :: [a] -> Int -> Maybe a
