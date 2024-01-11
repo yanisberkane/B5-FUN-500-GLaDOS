@@ -56,7 +56,8 @@ parseBody = parseMany parseWhiteSpace *> parseChar '{'
 
 parseArgList :: Parser Ast
 parseArgList = parseMany parseWhiteSpace *> parseChar '('
-    *> parseMany (parseCCSAst <* parseSome (parseChar ',')) >>= \args -> parseMany parseWhiteSpace <* parseChar ')'
+    *> parseMany (parseOr (parseCCSAst <* parseSome (parseChar ',')) parseCCSAst)
+    >>= \args -> parseMany parseWhiteSpace <* parseChar ')'
     Data.Functor.$> AstList args
 
 parseIf :: Parser Ast

@@ -1,6 +1,8 @@
 test() => (
     let x = 5;
     test();
+    print("haha");
+    return(x);
 );
 
 test();
