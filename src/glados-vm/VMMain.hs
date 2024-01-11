@@ -8,7 +8,6 @@ import System.FilePath (takeExtension, (<.>))
 import Control.Exception (IOException, try)
 import ErrorHandler (handleError, ErrorType(ParsingError, InvalidArgumentError))
 
-
 main :: IO ()
 main = getArgs >>= \args ->
     case args of
@@ -19,10 +18,10 @@ main = getArgs >>= \args ->
 processFile :: FilePath -> IO ()
 processFile filename = do
     (venv, vinsts) <- readStateFromFile filename
-    let res = execute [] venv ([], vinsts, [], [])
+    let res = execute [] venv ([], vinsts, [], [], [])
     case res of
         Left err -> putStrLn $ "Error: " ++ err
-        Right (stack, _, _, _) -> putStrLn $ formatStack stack
+        Right (_, _, _, _, output) -> putStrLn $ formatStack output
 
 formatStack :: Stack -> String
 formatStack [] = ""

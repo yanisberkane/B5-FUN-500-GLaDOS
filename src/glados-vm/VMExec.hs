@@ -6,41 +6,42 @@ pushToArgs :: Value -> Args -> Args
 pushToArgs value args = value : args
 
 execute :: Args -> VMEnv -> VMState -> Either String VMState
-execute args env (ListValue xs : stack, OperateOnList operator : insts, tmpInsts, oldArgs) =
+execute args env (value : stack, PushToOutput : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, value : output)
+execute args env (ListValue xs : stack, OperateOnList operator : insts, tmpInsts, oldArgs, output) =
     case executeListOperation operator xs of
         Left err -> Left err
-        Right newValue -> execute args env (newValue : stack, insts, tmpInsts, oldArgs)
-execute args env (stack, PushVMEnv name : insts, tmpInsts, oldArgs) = case lookup name env of
-    Just (Function insts') -> execute args env (Function insts' : stack, insts, tmpInsts, oldArgs)
-    Just value -> execute args env (value : stack, insts, tmpInsts, oldArgs)
+        Right newValue -> execute args env (newValue : stack, insts, tmpInsts, oldArgs, output)
+execute args env (stack, PushVMEnv name : insts, tmpInsts, oldArgs, output) = case lookup name env of
+    Just (Function insts') -> execute args env (Function insts' : stack, insts, tmpInsts, oldArgs, output)
+    Just value -> execute args env (value : stack, insts, tmpInsts, oldArgs, output)
     Nothing -> Left $ "Error: Variable " ++ name ++ " not found"
-execute args env (stack, AssignEnvValue name : insts, tmpInsts, oldArgs) = case stack of
-    (value : stack') -> execute args ((name, value) : env) (stack', insts, tmpInsts, oldArgs)
+execute args env (stack, AssignEnvValue name : insts, tmpInsts, oldArgs, output) = case stack of
+    (value : stack') -> execute args ((name, value) : env) (stack', insts, tmpInsts, oldArgs, output)
     _ -> Left "Error: AssignEnvValue needs a value on top of the stack"
-execute args env (Function funcInsts : stack, Call nb : insts, tmpInsts, oldArgs) = 
+execute args env (Function funcInsts : stack, Call nb : insts, tmpInsts, oldArgs, output) = 
     if length stack < nb
     then Left $ "Error: Call needs " ++ show nb ++ " arguments"
     else 
         let
             (args', stack') = splitAt nb stack
         in
-            execute args' env (stack', funcInsts, insts : tmpInsts, args : oldArgs)
-execute args env (stack, CallOp : insts, tmpInsts, oldArgs) = case stack of
+            execute args' env (stack', funcInsts, insts : tmpInsts, args : oldArgs, output)
+execute args env (stack, CallOp : insts, tmpInsts, oldArgs, output) = case stack of
     (Operator operator : stack') -> case executeOperation operator stack' of
         Left err -> Left err
-        Right newStack -> execute args env (newStack, insts, tmpInsts, oldArgs)
+        Right newStack -> execute args env (newStack, insts, tmpInsts, oldArgs, output)
     _ -> Left "Error: CallOp needs an operator on top of the stack"
-execute args env (stack, Push value : insts, tmpInsts, oldArgs) = execute args env (value : stack, insts, tmpInsts, oldArgs)
-execute args env (BoolValue False : stack, JumpIfFalse n : insts, tmpInsts, oldArgs) = execute args env (stack, drop n insts, tmpInsts, oldArgs)
-execute args env (BoolValue True : stack, JumpIfFalse _ : insts, tmpInsts, oldArgs) = execute args env (stack, insts, tmpInsts, oldArgs)
-execute args env (_, JumpIfFalse _ : _, _, _) = Left "Error: JumpIfFalse needs a boolean on top of the stack"
-execute args env (stack, PushArg i : insts, tmpInsts, oldArgs) = case safeIndex args i of
-    Just arg -> execute args env (arg : stack, insts, tmpInsts, oldArgs)
+execute args env (stack, Push value : insts, tmpInsts, oldArgs, output) = execute args env (value : stack, insts, tmpInsts, oldArgs, output)
+execute args env (BoolValue False : stack, JumpIfFalse n : insts, tmpInsts, oldArgs, output) = execute args env (stack, drop n insts, tmpInsts, oldArgs, output)
+execute args env (BoolValue True : stack, JumpIfFalse _ : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, output)
+execute args env (_, JumpIfFalse _ : _, _, _, _) = Left "Error: JumpIfFalse needs a boolean on top of the stack"
+execute args env (stack, PushArg i : insts, tmpInsts, oldArgs, output) = case safeIndex args i of
+    Just arg -> execute args env (arg : stack, insts, tmpInsts, oldArgs, output)
     Nothing -> Left $ "Error: Argument index " ++ show i ++ " out of bounds"
-execute args env (stack, Ret : _, newInsts : tmpRest, currentOldArgs : oldArgs) = execute currentOldArgs env (stack, newInsts, tmpRest, oldArgs)
-execute args env (stack, [], insts : tmpRest, currentOldArgs : oldArgs) = execute currentOldArgs env (stack, insts, tmpRest, oldArgs)
-execute args env (stack, Ret : _, [], oldArgs) = Right (stack, [], [], [])
-execute args env state@(stack, insts, tmpInsts, oldArgs) = Right state
+execute args env (stack, Ret : _, newInsts : tmpRest, currentOldArgs : oldArgs, output) = execute currentOldArgs env (stack, newInsts, tmpRest, oldArgs, output)
+execute args env (stack, [], insts : tmpRest, currentOldArgs : oldArgs, output) = execute currentOldArgs env (stack, insts, tmpRest, oldArgs, output)
+execute args env (stack, Ret : _, [], oldArgs, output) = Right (stack, [], [], [], output)
+execute args env state@(stack, insts, tmpInsts, oldArgs, output) = Right state
 
 executeOperation :: Operator -> Stack -> Either String Stack
 executeOperation Add (IntValue a : IntValue b : stack) = Right (IntValue (a + b) : stack)
