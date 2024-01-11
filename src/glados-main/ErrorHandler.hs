@@ -6,6 +6,9 @@ import Types (Ast(..))
 data ErrorType = ParsingError String
                | UndefinedVariableError String
                | InvalidArgumentError String
+               | InvalidConditionError Ast
+               | InvalidOperatorError String
+               | InvalidFunctionError String
                deriving (Show, Eq)
 
 handleError :: ErrorType -> IO ()

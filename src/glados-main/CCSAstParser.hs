@@ -23,7 +23,7 @@ parseSeparator :: Parser Ast
 parseSeparator = Separator <$> (parseMany parseWhiteSpace *> parseChar ';')
 
 parseAstOperator :: Parser Ast
-parseAstOperator = Operator <$>
+parseAstOperator = AstOperator <$>
     (parseMany parseWhiteSpace *> parseOperator)
 
 parseAstLogicOperator :: Parser Ast
@@ -91,7 +91,7 @@ parseMathOperation = parseMany parseWhiteSpace
     *> parseOr parseAstList (parseOr parseAstSymbol parseAstInt)  >>= \arg1 -> parseMany parseWhiteSpace
     *> parseOperator >>= \op -> parseMany parseWhiteSpace
     *> parseOr parseAstList (parseOr parseAstSymbol parseAstInt) >>= \arg2 -> parseMany parseWhiteSpace
-    Data.Functor.$> AstMathOp arg1 (Operator op) arg2
+    Data.Functor.$> AstMathOp arg1 (AstOperator op) arg2
 
 parseCCSAst :: Parser Ast
 parseCCSAst = parseAstLogicOperator
