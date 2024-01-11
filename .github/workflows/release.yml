@@ -36,8 +36,8 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset
-        id: upload-release-asset
+      - name: Upload Release Asset GLaDOS
+        id: upload-release-asset-glados
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,4 +45,15 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./glados
           asset_name: glados
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset GLaDOS-VM
+        id: upload-release-asset-glados-vm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./glados-vm
+          asset_name: glados-vm
           asset_content_type: application/octet-stream
