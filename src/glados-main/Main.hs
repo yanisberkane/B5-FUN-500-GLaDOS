@@ -31,6 +31,10 @@ processInput filename input =
             putStrLn "AST tree:"
             print ast
             let (env, insts) = interpretAST ast
+            putStrLn "(env)"
+            print env
+            putStrLn "(insts)"
+            print insts
             putStrLn "Environment:"
             putStr $ formatEnv env
             putStrLn "Instructions:"

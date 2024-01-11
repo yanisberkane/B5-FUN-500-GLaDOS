@@ -12,9 +12,9 @@ executable glados
                        binary
 
 executable glados-vm
-  hs-source-dirs:      src/glados-vm
+  hs-source-dirs:      src/glados-vm src/glados-main
   main-is:             VMMain.hs
-  other-modules:       VMExec VMTypes VMBinaryFileProcess
+  other-modules:       VMExec VMTypes VMBinaryFileProcess ErrorHandler Types
   build-depends:       base >= 4.7 && < 5,
                        filepath,
                        containers,

@@ -33,12 +33,15 @@ data Instruction = Push Value
                  | PushVMEnv String -- Push value of variable with name to stack
                  | OperateOnList Operator -- Apply instructions to list on top of stack
                  | AssignEnvValue String -- Assign value on top of stack to Env variable with name
+                 | PushToOutput -- Push last value of stack to output
                  deriving (Show, Eq)
 
 type Stack = [Value]
 type Insts = [Instruction]
+type TempInsts = [Insts]
 type Args = [Value]
-type VMState = (Stack, Insts)
+type Output = [Value]
+type VMState = (Stack, Insts, TempInsts, [Args], Output)
 type VMEnv = [(String, Value)]
 
 safeIndex :: [a] -> Int -> Maybe a

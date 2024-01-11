@@ -1,23 +1,36 @@
 
 import System.IO
 import System.Environment (getArgs)
-import System.Exit (exitFailure)
 import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
 import VMExec (execute)
-import VMBinaryFileProcess (writeStateToFile, readStateFromFile)
+import VMBinaryFileProcess (readStateFromFile)
+import System.FilePath (takeExtension, (<.>))
+import Control.Exception (IOException, try)
+import ErrorHandler (handleError, ErrorType(ParsingError, InvalidArgumentError))
 
 main :: IO ()
-main = do
-    args <- getArgs
-    -- let env = [("absCode", (Function [PushArg 0, Push (IntValue 0), Push (Operator Less), Call, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), Call, Ret]))]
-    -- let insts = [PushVMEnv "absCode", Call, Ret]
-    -- writeStateToFile "file.exec" (env, insts)
+main = getArgs >>= \args ->
+    case args of
+        [filename] | takeExtension filename == ".dz" -> processFile filename
+                   | otherwise -> handleError $ ParsingError "Invalid file extension. Expected '.dz' >:C."
+        _ -> handleError $ InvalidArgumentError "File was not provided."
 
-    (venv, vinsts) <- readStateFromFile "if1.dz"
+processFile :: FilePath -> IO ()
+processFile filename = do
+    (venv, vinsts) <- readStateFromFile filename
+    let res = execute [] venv ([], vinsts, [], [], [])
+    case res of
+        Left err -> putStrLn $ "Error: " ++ err
+        Right (_, _, _, _, output) -> putStrLn $ formatStack output
 
-    putStrLn $ show venv
-    putStrLn $ show vinsts
+formatStack :: Stack -> String
+formatStack [] = ""
+formatStack (IntValue i:xs) = show i ++ formatStack xs
+formatStack (BoolValue b:xs) = show b ++ formatStack xs
+formatStack (Operator o:xs) = show o ++ formatStack xs
+formatStack (Function insts:xs) = show insts ++ formatStack xs
+formatStack (StringValue s:xs) = "\"" ++ s ++ "\"" ++ formatStack xs
+formatStack (ListValue l:xs) = show l ++ formatStack xs
 
-    -- let res = execute [(IntValue (-42))] venv ([], vinsts)
-    -- putStrLn $ show res
-    return ()
+handleReadError :: IOException -> IO ()
+handleReadError e = handleError $ InvalidArgumentError ("File error: " ++ show e)

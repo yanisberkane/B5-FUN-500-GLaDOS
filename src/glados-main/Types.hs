@@ -16,7 +16,7 @@ data Ast = AstInt Int
          | NamedCall Ast Ast
          | AstCall Ast Ast
          | Separator Char
-         | Operator String
+         | AstOperator String
          | LogicOperator String
          | AstNone
          deriving (Show, Eq)

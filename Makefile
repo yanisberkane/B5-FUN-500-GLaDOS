@@ -24,6 +24,7 @@ fclean: clean
 	rm -rf .stack-work
 	rm -f glados
 	rm -f glados-vm
+	rm -rf *.dz
 
 re: fclean build
 
