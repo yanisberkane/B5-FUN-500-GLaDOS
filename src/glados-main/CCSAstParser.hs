@@ -84,7 +84,7 @@ parseNamedFunc = parseAstSymbol >>= \name ->
 
 parseCall :: Parser Ast
 parseCall = parseAstSymbol >>= \name ->
-    parseArgList >>= \args -> parseSeparator
+    parseArgList >>= \args -> parseMany parseSeparator
     Data.Functor.$> AstCall name args
 
 parseMathOperation :: Parser Ast
