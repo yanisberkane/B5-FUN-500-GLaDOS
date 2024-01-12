@@ -31,6 +31,7 @@ data Instruction = Push Value
                  | CallOp
                  | Ret
                  | JumpIfFalse Int -- Jump to instruction at index if top of stack is false
+                 | JumpIfTrue Int -- Jump to instruction at index if top of stack is true
                  | PushArg Int -- Push argument at index of arguments list to stack
                  | PushVMEnv String -- Push value of variable with name to stack
                  | OperateOnList Operator -- Apply instructions to list on top of stack

@@ -33,6 +33,9 @@ execute args env (stack, Jump n : insts, tmpInsts, oldArgs, output) = execute ar
 execute args env (BoolValue False : stack, JumpIfFalse n : insts, tmpInsts, oldArgs, output) = execute args env (stack, drop n insts, tmpInsts, oldArgs, output)
 execute args env (BoolValue True : stack, JumpIfFalse _ : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, output)
 execute args env (_, JumpIfFalse _ : _, _, _, _) = Left "Error: JumpIfFalse needs a boolean on top of the stack"
+execute args env (BoolValue True : stack, JumpIfTrue n : insts, tmpInsts, oldArgs, output) = execute args env (stack, drop n insts, tmpInsts, oldArgs, output)
+execute args env (BoolValue False : stack, JumpIfTrue _ : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, output)
+execute args env (_, JumpIfTrue _ : _, _, _, _) = Left "Error: JumpIfTrue needs a boolean on top of the stack"
 execute args env (stack, PushArg i : insts, tmpInsts, oldArgs, output) = case safeIndex args i of
     Just arg -> execute args env (arg : stack, insts, tmpInsts, oldArgs, output)
     Nothing -> Left $ "Error: Argument index " ++ show i ++ " out of bounds"

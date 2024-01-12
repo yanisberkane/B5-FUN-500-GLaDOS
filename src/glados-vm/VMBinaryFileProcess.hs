@@ -61,6 +61,7 @@ instance Binary Instruction where
     put (CallOp) = put (8 :: Int)
     put (PushToOutput) = put (9 :: Int)
     put (Jump i) = put (10 :: Int) >> put i
+    put (JumpIfTrue i) = put (11 :: Int) >> put i
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> get >>= \v -> return $ Push v
         1 -> get >>= \i -> return $ Call i
@@ -73,6 +74,7 @@ instance Binary Instruction where
         8 -> return CallOp
         9 -> return PushToOutput
         10 -> get >>= \i -> return $ Jump i
+        11 -> get >>= \i -> return $ JumpIfTrue i
 
 writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO ()
 writeStateToFile filename envinsts =  encodeFile filename envinsts
