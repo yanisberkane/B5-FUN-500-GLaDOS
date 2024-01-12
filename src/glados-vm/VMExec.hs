@@ -32,6 +32,7 @@ execute args env (stack, CallOp : insts, tmpInsts, oldArgs, output) = case stack
         Right newStack -> execute args env (newStack, insts, tmpInsts, oldArgs, output)
     _ -> Left "Error: CallOp needs an operator on top of the stack"
 execute args env (stack, Push value : insts, tmpInsts, oldArgs, output) = execute args env (value : stack, insts, tmpInsts, oldArgs, output)
+execute args env (stack, Jump n : insts, tmpInsts, oldArgs, output) = execute args env (stack, drop n insts, tmpInsts, oldArgs, output)
 execute args env (BoolValue False : stack, JumpIfFalse n : insts, tmpInsts, oldArgs, output) = execute args env (stack, drop n insts, tmpInsts, oldArgs, output)
 execute args env (BoolValue True : stack, JumpIfFalse _ : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, output)
 execute args env (_, JumpIfFalse _ : _, _, _, _) = Left "Error: JumpIfFalse needs a boolean on top of the stack"

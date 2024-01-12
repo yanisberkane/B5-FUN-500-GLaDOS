@@ -1,0 +1,7 @@
+
+if (7 > 6) then: (
+    print(True);
+) else: (
+    print(False);
+)
+print("outside");

@@ -34,6 +34,7 @@ data Instruction = Push Value
                  | OperateOnList Operator -- Apply instructions to list on top of stack
                  | AssignEnvValue String -- Assign value on top of stack to Env variable with name
                  | PushToOutput -- Push last value of stack to output
+                 | Jump Int -- Jump to instruction at index
                  deriving (Show, Eq)
 
 type Stack = [Value]

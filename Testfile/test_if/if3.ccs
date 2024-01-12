@@ -1,16 +1,17 @@
 let a = 5;
-let b = 4;
+let b = 5;
 
 if (a == b) then: (
-    let x = 10;
-    if (a > x) then:
-        show("a is greater");
+    let x = 5;
+    if (a == x) then:
+        print("a is greater");
     else:
-        show ("a is smaller");
+        print("a is smaller");
 ) else: (
-    let x = 11;
-    if (a < x) then:
-        show("x is greater");
+    let x = 5;
+    if (a == x) then:
+        print("x is greater");
     else:
-        show ("x is smaller");
+        print("x is smaller");
 )
+print("outside");

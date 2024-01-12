@@ -1,4 +1,0 @@
-let a = 1;
-let b = 1;
-
-(a == b) ? let x = 10; : let x = 11;

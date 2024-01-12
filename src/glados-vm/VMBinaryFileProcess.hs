@@ -56,6 +56,7 @@ instance Binary Instruction where
     put (AssignEnvValue s) = put (7 :: Int) >> put s
     put (CallOp) = put (8 :: Int)
     put (PushToOutput) = put (9 :: Int)
+    put (Jump i) = put (10 :: Int) >> put i
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> get >>= \v -> return $ Push v
         1 -> get >>= \i -> return $ Call i
@@ -67,6 +68,7 @@ instance Binary Instruction where
         7 -> get >>= \s -> return $ AssignEnvValue s
         8 -> return CallOp
         9 -> return PushToOutput
+        10 -> get >>= \i -> return $ Jump i
 
 writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO ()
 writeStateToFile filename envinsts =  encodeFile filename envinsts

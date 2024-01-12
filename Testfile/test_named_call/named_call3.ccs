@@ -1,3 +1,0 @@
-fact(nbr) => {
-    (nbr == 1) ? 1 : (nbr * fact((nbr - 1));)
-};

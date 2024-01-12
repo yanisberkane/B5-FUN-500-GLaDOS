@@ -1,6 +1,0 @@
-test () => (
-    let x = 10;
-    if (x > 11) then: show("hi");
-);
-
-test();

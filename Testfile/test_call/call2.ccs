@@ -4,6 +4,7 @@ let c = 3;
 
 test(b, b, c) => (
     let d = (a + b + c);
+    return (d);
 );
 
 test(a b c);
