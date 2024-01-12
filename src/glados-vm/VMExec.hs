@@ -2,11 +2,8 @@ module VMExec where
 
 import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
 
-pushToArgs :: Value -> Args -> Args
-pushToArgs value args = value : args
-
 execute :: Args -> VMEnv -> VMState -> Either String VMState
-execute args env (value : stack, PushToOutput : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, value : output)
+execute args env (value : stack, PushToOutput : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, output ++ [value])
 execute args env (ListValue xs : stack, OperateOnList operator : insts, tmpInsts, oldArgs, output) =
     case executeListOperation operator xs of
         Left err -> Left err
@@ -66,12 +63,16 @@ executeOperation Not _ = Left "Error: Not needs one boolean argument"
 executeOperation Eq (IntValue a : IntValue b : stack) = Right (BoolValue (a == b) : stack)
 executeOperation Eq (BoolValue a : BoolValue b : stack) = Right (BoolValue (a == b) : stack)
 executeOperation Eq _ = Left "Error: Eq needs two arguments of the same type"
-executeOperation Less (IntValue a : IntValue b : stack) = Right (BoolValue (a < b) : stack)
+executeOperation Less (IntValue a : IntValue b : stack) = Right (BoolValue (a > b) : stack)
 executeOperation Less _ = Left "Error: Less needs two arguments of the same type"
-executeOperation Sup (IntValue a : IntValue b : stack) = Right (BoolValue (a > b) : stack)
+executeOperation Sup (IntValue a : IntValue b : stack) = Right (BoolValue (a < b) : stack)
 executeOperation Sup _ = Left "Error: Sup needs two arguments of the same type"
 executeOperation Concat (StringValue a : StringValue b : stack) = Right (StringValue (a ++ b) : stack)
 executeOperation Concat _ = Left "Error: Concat needs two arguments"
+executeOperation LessEq (IntValue a : IntValue b : stack) = Right (BoolValue (a >= b) : stack)
+executeOperation LessEq _ = Left "Error: LessEq needs two arguments of the same type"
+executeOperation SupEq (IntValue a : IntValue b : stack) = Right (BoolValue (a <= b) : stack)
+executeOperation SupEq _ = Left "Error: SupEq needs two arguments of the same type"
 
 executeListOperation :: Operator -> [Value] -> Either String Value
 executeListOperation Add xs = Right $ IntValue $ sum [x | IntValue x <- xs]

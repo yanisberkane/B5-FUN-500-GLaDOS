@@ -21,16 +21,16 @@ processFile filename = do
     let res = execute [] venv ([], vinsts, [], [], [])
     case res of
         Left err -> putStrLn $ "Error: " ++ err
-        Right (_, _, _, _, output) -> putStrLn $ formatStack output
+        Right (_, _, _, _, output) -> putStr $ formatStack output
 
 formatStack :: Stack -> String
 formatStack [] = ""
-formatStack (IntValue i:xs) = show i ++ formatStack xs
-formatStack (BoolValue b:xs) = show b ++ formatStack xs
-formatStack (Operator o:xs) = show o ++ formatStack xs
-formatStack (Function insts:xs) = show insts ++ formatStack xs
-formatStack (StringValue s:xs) = "\"" ++ s ++ "\"" ++ formatStack xs
-formatStack (ListValue l:xs) = show l ++ formatStack xs
+formatStack (IntValue i:xs) = show i ++ "\n" ++ formatStack xs
+formatStack (BoolValue b:xs) = show b ++ "\n" ++ formatStack xs
+formatStack (Operator o:xs) = show o ++ "\n" ++ formatStack xs
+formatStack (Function insts:xs) = show insts ++ "\n" ++ formatStack xs
+formatStack (StringValue s:xs) = "\"" ++ s ++ "\"" ++ "\n" ++ formatStack xs
+formatStack (ListValue l:xs) = show l ++ "\n" ++ formatStack xs
 
 handleReadError :: IOException -> IO ()
 handleReadError e = handleError $ InvalidArgumentError ("File error: " ++ show e)

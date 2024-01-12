@@ -22,6 +22,8 @@ data Operator = Add
             | Less
             | Sup
             | Concat
+            | LessEq
+            | SupEq
             deriving (Show, Eq)
 
 data Instruction = Push Value
