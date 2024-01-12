@@ -41,11 +41,11 @@ testEqVM = TestCase $ do
     let expected = Right ([BoolValue True],[], [], [], [])
     assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret])" expected (executed)
 
-testLessVM :: Test
-testLessVM = TestCase $ do
-    let executed = execute [] [] ([], [Push (IntValue 2), Push (IntValue 5), Push (Operator Less), CallOp, Ret], [], [], [])
+testSupVM :: Test
+testSupVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 2), Push (IntValue 5), Push (Operator Sup), CallOp, Ret], [], [], [])
     let expected = Right ([BoolValue False],[], [], [], [])
-    assertEqual "execute [] [] ([], [Push (IntValue 2), Push (IntValue 5), Push (Operator Less), CallOp, Ret])" expected (executed)
+    assertEqual "execute [] [] ([], [Push (IntValue 2), Push (IntValue 5), Push (Operator Sup), CallOp, Ret])" expected (executed)
 
 testJumpIfFalse1VM :: Test
 testJumpIfFalse1VM = TestCase $ do
@@ -55,18 +55,18 @@ testJumpIfFalse1VM = TestCase $ do
 
 testJumpIfFalse2Vm :: Test
 testJumpIfFalse2Vm = TestCase $ do
-    let executed1 = execute [(IntValue 42)] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Less), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret], [], [], [])
+    let executed1 = execute [(IntValue 42)] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Sup), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret], [], [], [])
     let expected1 = Right ([IntValue 42], [], [], [], [])
-    assertEqual "execute [(IntValue 42)] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Less), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret])" expected1 (executed1)
-    let executed2 = execute [(IntValue (-42))] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Less), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret], [], [], [])
+    assertEqual "execute [(IntValue 42)] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Sup), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret])" expected1 (executed1)
+    let executed2 = execute [(IntValue (-42))] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Sup), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret], [], [], [])
     let expected2 = Right ([IntValue 42], [], [], [], [])
-    assertEqual "execute [(IntValue (-42))] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Less), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret])" expected2 (executed2)
+    assertEqual "execute [(IntValue (-42))] [] ([], [PushArg 0, Push (IntValue 0), Push (Operator Sup), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret])" expected2 (executed2)
 
 testEnvVM :: Test
 testEnvVM = TestCase $ do
-    let executed = execute [] [("absCode", (Function [PushArg 0, Push (IntValue 0), Push (Operator Less), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret]))] ([], [Push (IntValue (-42)), PushVMEnv "absCode", Call 1, Ret], [], [], [])
+    let executed = execute [] [("absCode", (Function [PushArg 0, Push (IntValue 0), Push (Operator Sup), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret]))] ([], [Push (IntValue (-42)), PushVMEnv "absCode", Call 1, Ret], [], [], [])
     let expected = Right ([IntValue 42], [], [], [], [])
-    assertEqual "execute [] [(\"absCode\", (Function [PushArg 0, Push (IntValue 0), Push (Operator Less), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret]))] ([], [Push (IntValue (-42)), PushVMEnv \"absCode\", Call 1, Ret])" expected (executed)
+    assertEqual "execute [] [(\"absCode\", (Function [PushArg 0, Push (IntValue 0), Push (Operator Sup), CallOp, JumpIfFalse 2, PushArg 0, Ret, PushArg 0, Push (IntValue (-1)), Push (Operator Mul), CallOp, Ret]))] ([], [Push (IntValue (-42)), PushVMEnv \"absCode\", Call 1, Ret])" expected (executed)
 
 tests :: Test
 tests = TestList [
@@ -75,7 +75,7 @@ tests = TestList [
                     TestLabel "testPushFailVM" testPushFailVM,
                     TestLabel "testDivFailVM" testDivFailVM,
                     TestLabel "testEqVM" testEqVM,
-                    TestLabel "testLessVM" testLessVM,
+                    TestLabel "testSupVM" testSupVM,
                     TestLabel "testJumpIfFalse1VM" testJumpIfFalse1VM,
                     TestLabel "testJumpIfFalse2Vm" testJumpIfFalse2Vm,
                     TestLabel "testEnvVM" testEnvVM
