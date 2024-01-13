@@ -97,3 +97,5 @@ executeListOperation Eq (x:xs) = Right $ BoolValue $ and [x == x' | x' <- xs]
 executeListOperation Eq _ = Left "Error: Eq needs at least one argument"
 executeListOperation Less (IntValue x : xs) = Right $ BoolValue $ and [x < x' | IntValue x' <- xs]
 executeListOperation Less _ = Left "Error: Less needs at least one argument"
+executeListOperation NotEq (x:xs) = Right $ BoolValue $ or [x /= x' | x' <- xs]
+executeListOperation NotEq _ = Left "Error: NotEq needs at least one argument"

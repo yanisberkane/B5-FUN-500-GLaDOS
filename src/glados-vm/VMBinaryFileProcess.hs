@@ -33,6 +33,7 @@ instance Binary Operator where
     put Concat = put (11 :: Int)
     put LessEq = put (12 :: Int)
     put SupEq = put (13 :: Int)
+    put NotEq = put (14 :: Int)
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> return Add
         1 -> return Sub
@@ -48,6 +49,7 @@ instance Binary Operator where
         11 -> return Concat
         12 -> return LessEq
         13 -> return SupEq
+        14 -> return NotEq
 
 instance Binary Instruction where
     put (Push v) = put (0 :: Int) >> put v
