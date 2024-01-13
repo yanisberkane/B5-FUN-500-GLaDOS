@@ -28,6 +28,71 @@ import CCSAstParserNamedCall
 import BufferToCCSAstParser
 import ParserTests
 import ParserTests (testParseAndFail2)
+
+-- data Ast = AstInt Int
+--     7          | AstBool Bool
+--     8          | AstSymbol String
+--     9          | AstString String
+--    10          | AstList [Ast]
+--    11          | AstMathOp Ast Ast Ast
+--    12          | Assign Ast Ast
+--    13          | Define Ast Ast
+--    14          | If Ast Ast Ast
+--    15          | Lambda Ast Ast
+--    16          | NamedCall Ast Ast
+--    17          | AstCall Ast Ast
+--    18          | Separator Char
+--    19          | AstOperator String
+--    20          | LogicOperator String
+--    21          | AstNone
+--    22          deriving (Show, Eq)
+
+
+-- test show for Ast
+
+testShowAstInt :: Test
+testShowAstInt = TestCase $ do
+    let ast = AstInt 42
+    let expected = "AstInt 42"
+    assertEqual "show AstInt 42" expected (show ast)
+
+testShowAstString :: Test
+testShowAstString = TestCase $ do
+    let ast = AstString "Hello World!"
+    let expected = "AstString \"Hello World!\""
+    assertEqual "show AstString \"Hello World!\"" expected (show ast)
+
+testShowAstBool :: Test
+testShowAstBool = TestCase $ do
+    let ast = AstBool True
+    let expected = "AstBool True"
+    assertEqual "show AstBool True" expected (show ast)
+
+testShowAstNone :: Test
+testShowAstNone = TestCase $ do
+    let ast = AstNone
+    let expected = "AstNone"
+    assertEqual "show AstNone" expected (show ast)
+
+testShowAstSymbol :: Test
+testShowAstSymbol = TestCase $ do
+    let ast = AstSymbol "x"
+    let expected = "AstSymbol \"x\""
+    assertEqual "show AstSymbol \"x\"" expected (show ast)
+
+testShowAstList :: Test
+testShowAstList = TestCase $ do
+    let ast = AstList [AstInt 42, AstString "Hello World!", AstBool True]
+    let expected = "AstList [AstInt 42,AstString \"Hello World!\",AstBool True]"
+    assertEqual "show AstList [AstInt 42, AstString \"Hello World!\", AstBool True]" expected (show ast)
+
+testShowAstMathOp :: Test
+testShowAstMathOp = TestCase $ do
+    let ast = AstMathOp (AstInt 42) (AstInt 42) (AstOperator "+")
+    let expected = "AstMathOp (AstInt 42) (AstInt 42) (AstOperator \"+\")"
+    assertEqual "show AstMathOp (AstInt 42) (AstInt 42) (AstOperator \"+\")" expected (show ast)
+
+
 -- Tests for the VM
 
 --- Example testPushVM
@@ -54,6 +119,12 @@ testAddVM = TestCase $ do
     let executed = execute [] [] ([], [Push (IntValue 42), Push (IntValue 1), Push (Operator Add), CallOp, Ret], [], [], [])
     let expected = Right ([IntValue 43],[], [], [], [])
     assertEqual "execute [] [] ([], [Push (IntValue 42), Push (IntValue 1), Push (Operator Add), CallOp, Ret])" expected (executed)
+
+testCallOpFailVM :: Test
+testCallOpFailVM = TestCase $ do
+    let executed = execute [] [] ([], [CallOp, Ret], [], [], [])
+    let expected = Left "Error: CallOp needs an operator on top of the stack"
+    assertEqual "execute [] [] ([], [CallOp, Ret])" expected (executed)
 
 --- Example testPushFailVM
 -- Push 10
@@ -126,6 +197,30 @@ testJumpIfFalse1VM = TestCase $ do
     let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, JumpIfFalse 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret], [], [], [])
     let expected = Right ([IntValue 1],[], [], [], [])
     assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, JumpIfFalse 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret])" expected (executed)
+
+testJumpIfTrue1VM :: Test
+testJumpIfTrue1VM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, JumpIfTrue 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret], [], [], [])
+    let expected = Right ([IntValue 2],[], [], [], [])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, JumpIfTrue 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret])" expected (executed)
+
+testJumpIfTrue2VM :: Test
+testJumpIfTrue2VM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 11), Push (Operator Eq), CallOp, JumpIfTrue 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret], [], [], [])
+    let expected = Right ([IntValue 1],[], [], [], [])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 11), Push (Operator Eq), CallOp, JumpIfTrue 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret])" expected (executed)
+
+testJumpIfFalseFailVM :: Test
+testJumpIfFalseFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), JumpIfFalse 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret], [], [], [])
+    let expected = Left "Error: JumpIfFalse needs a boolean on top of the stack"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), JumpIfFalse 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret])" expected (executed)
+
+testJumpIfTrueFailVM :: Test
+testJumpIfTrueFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), JumpIfTrue 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret], [], [], [])
+    let expected = Left "Error: JumpIfTrue needs a boolean on top of the stack"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), JumpIfTrue 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret])" expected (executed)
 
 -- Example testJumpIfFalse2VM
 -- PushArg 0
@@ -346,6 +441,12 @@ testArithmeticOperationsVM = TestCase $ do
     let expected = Right ([IntValue 7],[],[],[],[])
     assertEqual "execute [] [] ([], [Push (IntValue 5), Push (IntValue 10), Push (IntValue 12), Push (Operator Sub), CallOp, Push (Operator Add), CallOp, AssignEnvValue \"x\", Ret])" expected (executed)
 
+testAssignEnvValueFailVM :: Test
+testAssignEnvValueFailVM = TestCase $ do
+    let executed = execute [] [] ([], [AssignEnvValue "x", PushVMEnv "x", Ret], [], [], [])
+    let expected = Left "Error: AssignEnvValue needs a value on top of the stack"
+    assertEqual "execute [] [] ([], [AssignEnvValue \"x\", Ret])" expected (executed)
+
 -- Example testArithmeticOperationsVM2
 -- Push 1
 -- Push 1
@@ -433,6 +534,24 @@ testAssignmentVM3 = TestCase $ do
     let expected = Right ([IntValue 18],[],[],[],[])
     assertEqual "execute [] [(\"a\", (IntValue 5)), (\"b\", (IntValue 10)), (\"c\", (IntValue 3)), (\"test2\", (Function [Push (IntValue 45), Ret])), (\"test\", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue \"d\", PushVMEnv \"d\", Ret]))] ([], [PushVMEnv \"a\", PushVMEnv \"b\", PushVMEnv \"c\", PushVMEnv \"test\", Call 3, Ret])" expected (executed)
 
+testPushVMEnvFailVM :: Test
+testPushVMEnvFailVM = TestCase $ do
+    let executed = execute [] [("test2", (Function [Push (IntValue 45), Ret])), ("test", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue "d", PushVMEnv "d", Ret]))] ([], [PushVMEnv "a", PushVMEnv "b", PushVMEnv "c", PushVMEnv "test", Call 3, Ret], [], [], [])
+    let expected = Left "Error: Variable a not found"
+    assertEqual "execute [] [(\"a\", (IntValue 5)), (\"b\", (IntValue 10)), (\"c\", (IntValue 3)), (\"test2\", (Function [Push (IntValue 45), Ret])), (\"test\", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue \"d\", PushVMEnv \"d\", Ret]))] ([], [PushVMEnv \"a\", PushVMEnv \"b\", PushVMEnv \"c\", PushVMEnv \"test\", Call 3, Ret])" expected (executed)
+
+testPushArgsOutOfBounds :: Test
+testPushArgsOutOfBounds = TestCase $ do
+    let executed = execute [] [("a", (IntValue 5)), ("b", (IntValue 10)), ("c", (IntValue 3)), ("test2", (Function [Push (IntValue 45), Ret])), ("test", (Function [PushArg 0, PushArg 7, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue "d", PushVMEnv "d", Ret]))] ([], [PushVMEnv "a", PushVMEnv "b", PushVMEnv "c", PushVMEnv "test", Call 3, Ret], [], [], [])
+    let expected = Left "Error: Argument index 7 out of bounds"
+    assertEqual "execute [] [(\"a\", (IntValue 5)), (\"b\", (IntValue 10)), (\"c\", (IntValue 3)), (\"test2\", (Function [Push (IntValue 45), Ret])), (\"test\", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue \"d\", PushVMEnv \"d\", Ret]))] ([], [PushVMEnv \"a\", PushVMEnv \"b\", PushVMEnv \"c\", PushVMEnv \"test\", Call 3, Ret])" expected (executed)
+
+testAssignmentFailVM :: Test
+testAssignmentFailVM = TestCase $ do
+    let executed = execute [] [("a", (IntValue 5)), ("b", (IntValue 10)), ("c", (IntValue 3)), ("test2", (Function [Push (IntValue 45), Ret])), ("test", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue "d", PushVMEnv "d", Ret]))] ([], [PushVMEnv "a", PushVMEnv "b", PushVMEnv "test", Call 3, Ret], [], [], [])
+    let expected = Left "Error: Call needs 3 arguments"
+    assertEqual "execute [] [(\"a\", (IntValue 5)), (\"b\", (IntValue 10)), (\"c\", (IntValue 3)), (\"test2\", (Function [Push (IntValue 45), Ret])), (\"test\", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue \"d\", PushVMEnv \"d\", Ret]))] ([], [PushVMEnv \"a\", PushVMEnv \"b\", PushVMEnv \"test\", Call 3, Ret])" expected (executed)
+
 -- Example testArithmeticOperationsVM6
 -- PushVMEnv "test"
 -- Call 0
@@ -450,6 +569,473 @@ testAssignmentVM4 = TestCase $ do
     let executed = execute [] [("test", (Function [Push (IntValue 5), AssignEnvValue "x", PushVMEnv "x"]))] ([], [PushVMEnv "test", Call 0, Ret], [], [], [])
     let expected = Right ([IntValue 5],[],[],[],[])
     assertEqual "execute [] [(\"test\", (Function [Push (IntValue 5), AssignEnvValue \"x\", PushVMEnv \"x\", Ret]))] ([], [PushVMEnv \"test\", Call 0, Ret])" expected (executed)
+
+-- generate more tests to cover all cases of the VM
+-- test the Left cases for operations
+
+testSubFailVM :: Test
+testSubFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Sub), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Sub needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Sub), CallOp, Ret])" expected (executed)
+
+testMulFailVM :: Test
+testMulFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Mul), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Mul needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Mul), CallOp, Ret])" expected (executed)
+
+testModFailVM :: Test
+testModFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Mod), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Mod needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Mod), CallOp, Ret])" expected (executed)
+
+testAndFailVM :: Test
+testAndFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator And), CallOp, Ret], [], [], [])
+    let expected = Left "Error: And needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator And), CallOp, Ret])" expected (executed)
+
+testOrFailVM :: Test
+testOrFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Or), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Or needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Or), CallOp, Ret])" expected (executed)
+
+testNotVM :: Test
+testNotVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (Operator Not), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Not needs one argument"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Not), CallOp, Ret])" expected (executed)
+
+testNotFailVM :: Test
+testNotFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Not), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue False],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Not), CallOp, Ret])" expected (executed)
+
+testEqFailVM :: Test
+testEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Eq), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Eq needs two arguments of the same type"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testSupFailVM :: Test
+testSupFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Sup), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Sup needs two arguments of the same type"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Sup), CallOp, Ret])" expected (executed)
+
+testLessFailVM :: Test
+testLessFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Less), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Less needs two arguments of the same type"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Less), CallOp, Ret])" expected (executed)
+
+testConcatFailVM :: Test
+testConcatFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Concat), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Concat needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Concat), CallOp, Ret])" expected (executed)
+
+testLessEqVM :: Test
+testLessEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator LessEq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator LessEq), CallOp, Ret])" expected (executed)
+
+testLessEqFailVM :: Test
+testLessEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (StringValue "10"), Push (IntValue 10), Push (Operator LessEq), CallOp, Ret], [], [], [])
+    let expected = Left "Error: LessEq needs two arguments of the same type"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator LessEq), CallOp, Ret])" expected (executed)
+
+testSupEqVM :: Test
+testSupEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator SupEq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator SupEq), CallOp, Ret])" expected (executed)
+
+testSupEqFailVM :: Test
+testSupEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (StringValue "10"), Push (IntValue 10), Push (Operator SupEq), CallOp, Ret], [], [], [])
+    let expected = Left "Error: SupEq needs two arguments of the same type"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator SupEq), CallOp, Ret])" expected (executed)
+
+testNotEqVM :: Test
+testNotEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator NotEq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue False],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator NotEq), CallOp, Ret])" expected (executed)
+
+testNotEq2VM :: Test
+testNotEq2VM = TestCase $ do
+    let executed = execute [] [] ([], [Push (BoolValue True), Push (BoolValue True), Push (Operator NotEq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue False],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue True), Push (BoolValue True), Push (Operator NotEq), CallOp, Ret])" expected (executed)
+
+testNotEqFailVM :: Test
+testNotEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (StringValue "10"), Push (IntValue 10), Push (Operator NotEq), CallOp, Ret], [], [], [])
+    let expected = Left "Error: NotEq needs two arguments of the same type"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator NotEq), CallOp, Ret])" expected (executed)
+
+testOperationDivVM :: Test
+testOperationDivVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 2), Push (Operator Div), CallOp, Ret], [], [], [])
+    let expected = Right ([IntValue 0],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 2), Push (Operator Div), CallOp, Ret])" expected (executed)
+
+testOperationDivFailVM :: Test
+testOperationDivFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Div), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Div needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Div), CallOp, Ret])" expected (executed)
+
+testOperationModVM :: Test
+testOperationModVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 2), Push (Operator Mod), CallOp, Ret], [], [], [])
+    let expected = Right ([IntValue 2],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 2), Push (Operator Mod), CallOp, Ret])" expected (executed)
+
+testOperationModFailVM :: Test
+testOperationModFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (Operator Mod), CallOp, Ret], [], [], [])
+    let expected = Left "Error: Mod needs two arguments"
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (Operator Mod), CallOp, Ret])" expected (executed)
+
+testOperationDivFailVM2 :: Test
+testOperationDivFailVM2 = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 0), Push (Operator Div), CallOp, Ret], [], [], [])
+    let expected = Right ([IntValue 0],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 0), Push (Operator Div), CallOp, Ret])" expected (executed)
+
+testListOperationAddVM :: Test
+testListOperationAddVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Add, Ret], [], [], [])
+    let expected = Right ([IntValue 6],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Add, Ret])" expected (executed)
+
+testListOperationSubVM :: Test
+testListOperationSubVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Sub, Ret], [], [], [])
+    let expected = Right ([IntValue (-4)],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Sub, Ret])" expected (executed)
+
+testListOperationMulVM :: Test
+testListOperationMulVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Mul, Ret], [], [], [])
+    let expected = Right ([IntValue 6],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Mul, Ret])" expected (executed)
+
+testListOperationDivVM :: Test
+testListOperationDivVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Div, Ret], [], [], [])
+    let expected = Right ([IntValue 0],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Div, Ret])" expected (executed)
+
+testListOperationModVM :: Test
+testListOperationModVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Mod, Ret], [], [], [])
+    let expected = Right ([IntValue 1],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Mod, Ret])" expected (executed)
+
+testListOperationAndVM :: Test
+testListOperationAndVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [BoolValue True, BoolValue True, BoolValue True]), OperateOnList And, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [BoolValue True, BoolValue True, BoolValue True]), OperateOnList And, Ret])" expected (executed)
+
+testListOperationOrVM :: Test
+testListOperationOrVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [BoolValue True, BoolValue True, BoolValue True]), OperateOnList Or, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [BoolValue True, BoolValue True, BoolValue True]), OperateOnList Or, Ret])" expected (executed)
+
+testListOperationNotVM :: Test
+testListOperationNotVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [BoolValue True, BoolValue True, BoolValue True]), OperateOnList Not, Ret], [], [], [])
+    let expected = Right ([BoolValue False],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [BoolValue True, BoolValue True, BoolValue True]), OperateOnList Not, Ret])" expected (executed)
+
+testListOperateNotVM2 :: Test
+testListOperateNotVM2 = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 0, IntValue 0, IntValue 0]), OperateOnList Not, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 0, IntValue 0, IntValue 0]), OperateOnList Not, Ret])" expected (executed)
+
+testListOperationEqVM :: Test
+testListOperationEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 1, IntValue 1]), OperateOnList Eq, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 1, IntValue 1]), OperateOnList Eq, Ret])" expected (executed)
+
+testListOperationLessVM :: Test
+testListOperationLessVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Less, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList Less, Ret])" expected (executed)
+
+testListOperationNotEqVM :: Test
+testListOperationNotEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList NotEq, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 2, IntValue 3]), OperateOnList NotEq, Ret])" expected (executed)
+
+testListOperationSupVM :: Test
+testListOperationSupVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 3, IntValue 2, IntValue 1]), OperateOnList Sup, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 3, IntValue 2, IntValue 1]), OperateOnList Sup, Ret])" expected (executed)
+
+testListOperationConcatVM :: Test
+testListOperationConcatVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [StringValue "Hello", StringValue "World", StringValue "!"]), OperateOnList Concat, Ret], [], [], [])
+    let expected = Right ([StringValue "HelloWorld!"],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [StringValue \"Hello\", StringValue \"World\", StringValue \"!\"]), OperateOnList Concat, Ret])" expected (executed)
+
+testListOperationLessEqVM :: Test
+testListOperationLessEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 1, IntValue 1]), OperateOnList LessEq, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 1, IntValue 1]), OperateOnList LessEq, Ret])" expected (executed)
+
+testListOperationSupEqVM :: Test
+testListOperationSupEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 1, IntValue 1]), OperateOnList SupEq, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (ListValue [IntValue 1, IntValue 1, IntValue 1]), OperateOnList SupEq, Ret])" expected (executed)
+
+testListOperationSubFailVM :: Test
+testListOperationSubFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList Sub, Ret], [], [], [])
+    let expected = Left "Error: Sub needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList Sub, Ret])" expected (executed)
+
+testListOperationDivFailVM :: Test
+testListOperationDivFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList Div, Ret], [], [], [])
+    let expected = Left "Error: Div needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList Div, Ret])" expected (executed)
+
+testListOperationModFailVM :: Test
+testListOperationModFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList Mod, Ret], [], [], [])
+    let expected = Left "Error: Mod needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList Mod, Ret])" expected (executed)
+
+testListOperationNotFailVM :: Test
+testListOperationNotFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList Not, Ret], [], [], [])
+    let expected = Left "Error: Not needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList Not, Ret])" expected (executed)
+
+testListOperationEqFailVM :: Test
+testListOperationEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList Eq, Ret], [], [], [])
+    let expected = Left "Error: Eq needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList Eq, Ret])" expected (executed)
+
+testListOperationLessFailVM :: Test
+testListOperationLessFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList Less, Ret], [], [], [])
+    let expected = Left "Error: Less needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList Less, Ret])" expected (executed)
+
+testListOperationNotEqFailVM :: Test
+testListOperationNotEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList NotEq, Ret], [], [], [])
+    let expected = Left "Error: NotEq needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList NotEq, Ret])" expected (executed)
+
+testListOperationSupFailVM :: Test
+testListOperationSupFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList Sup, Ret], [], [], [])
+    let expected = Left "Error: Sup needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList Sup, Ret])" expected (executed)
+
+testListOperationLessEqFailVM :: Test
+testListOperationLessEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList LessEq, Ret], [], [], [])
+    let expected = Left "Error: LessEq needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList LessEq, Ret])" expected (executed)
+
+testListOperationSupEqFailVM :: Test
+testListOperationSupEqFailVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (ListValue []), OperateOnList SupEq, Ret], [], [], [])
+    let expected = Left "Error: SupEq needs at least one argument"
+    assertEqual "execute [] [] ([], [Push (ListValue []), OperateOnList SupEq, Ret])" expected (executed)
+
+testOperationEqVM :: Test
+testOperationEqVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testOperationEqVM2 :: Test
+testOperationEqVM2 = TestCase $ do
+    let executed = execute [] [] ([], [Push (BoolValue True), Push (BoolValue True), Push (Operator Eq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue True), Push (BoolValue True), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testOperatorEqVM3 :: Test
+testOperatorEqVM3 = TestCase $ do
+    let executed = execute [] [] ([], [Push (BoolValue False), Push (IntValue 1), Push (Operator Eq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue False],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue False), Push (IntValue 1), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testOperationEqVM3 :: Test
+testOperationEqVM3 = TestCase $ do
+    let executed = execute [] [] ([], [Push (BoolValue True), Push (IntValue 1), Push (Operator Eq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue True), Push (IntValue 1), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testOperationEqVM4 :: Test
+testOperationEqVM4 = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 1), Push (BoolValue True), Push (Operator Eq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue True), Push (IntValue 0), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testOperationEqVM5 :: Test
+testOperationEqVM5 = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 0), Push (BoolValue False), Push (Operator Eq), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue True), Push (IntValue 0), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testOperationLessVM :: Test
+testOperationLessVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 1), Push (IntValue 2), Push (Operator Less), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 1), Push (IntValue 2), Push (Operator Less), CallOp, Ret])" expected (executed)
+
+testOperationNotVM :: Test
+testOperationNotVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (BoolValue True), Push (Operator Not), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue False],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue True), Push (Operator Not), CallOp, Ret])" expected (executed)
+
+testOperationNotVM2 :: Test
+testOperationNotVM2 = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 0), Push (Operator Not), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 0), Push (Operator Not), CallOp, Ret])" expected (executed)
+
+testOperationOrVM :: Test
+testOperationOrVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (BoolValue True), Push (BoolValue False), Push (Operator Or), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue True],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue True), Push (BoolValue False), Push (Operator Or), CallOp, Ret])" expected (executed)
+
+testOperationOrVM2 :: Test
+testOperationOrVM2 = TestCase $ do
+    let executed = execute [] [] ([], [Push (BoolValue False), Push (BoolValue False), Push (Operator Or), CallOp, Ret], [], [], [])
+    let expected = Right ([BoolValue False],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (BoolValue False), Push (BoolValue False), Push (Operator Or), CallOp, Ret])" expected (executed)
+
+testOperationModFailVM2 :: Test
+testOperationModFailVM2 = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 0), Push (IntValue 10), Push (Operator Mod), CallOp, Ret], [], [], [])
+    let expected = Left "Error: division by 0"
+    assertEqual "execute [] [] ([], [Push (IntValue 0), Push (IntValue 10), Push (Operator Mod), CallOp, Ret])" expected (executed)
+
+
+-- data Value = IntValue Int
+--     4             | BoolValue Bool
+--     5             | Operator Operator
+--     6             | Function Insts
+--     7             -- | SymbolValue String
+--     8             -- | CharValue Char
+--     9             | StringValue String
+--    10             | ListValue [Value]
+--    11             deriving (Show, Eq)
+--    12 
+--    13 data Operator = Add
+--    14             | Sub
+--    15             | Mul
+--    16             | Div
+--    17             | Mod
+--    18             | And
+--    19             | Or
+--    20             | Not
+--    21             | Eq
+--    22             | NotEq
+--    23             | Less
+--    24             | Sup
+--    25             | Concat
+--    26             | LessEq
+--    27             | SupEq
+--    28             deriving (Show, Eq)
+--    29 
+--    30 data Instruction = Push Value
+--    31                  | Call Int
+--    32                  | CallOp
+--    33                  | Ret
+--    34                  | JumpIfFalse Int -- Jump to instruction at index if top of stack is false
+--    35                  | JumpIfTrue Int -- Jump to instruction at index if top of stack is true
+--    36                  | PushArg Int -- Push argument at index of arguments list to stack
+--    37                  | PushVMEnv String -- Push value of variable with name to stack
+--    38                  | OperateOnList Operator -- Apply instructions to list on top of stack
+--    39                  | AssignEnvValue String -- Assign value on top of stack to Env variable with name
+--    40                  | PushToOutput -- Push last value of stack to output
+--    41                  | Jump Int -- Jump to instruction at index
+--    42                  deriving (Show, Eq)
+
+--- test cases for VMTypes for Show and Eq
+
+testIntValueShow :: Test
+testIntValueShow = TestCase $ do
+    let executed = show (IntValue 10)
+    let expected = "IntValue 10"
+    assertEqual "show (IntValue 10)" expected (executed)
+
+testIntValueEq :: Test
+testIntValueEq = TestCase $ do
+    let executed = (IntValue 10) == (IntValue 10)
+    let expected = True
+    assertEqual "(IntValue 10) == (IntValue 10)" expected (executed)
+
+testBoolValueShow :: Test
+testBoolValueShow = TestCase $ do
+    let executed = show (BoolValue True)
+    let expected = "BoolValue True"
+    assertEqual "show (BoolValue True)" expected (executed)
+
+testBoolValueEq :: Test
+testBoolValueEq = TestCase $ do
+    let executed = (BoolValue True) == (BoolValue True)
+    let expected = True
+    assertEqual "(BoolValue True) == (BoolValue True)" expected (executed)
+
+testOperatorShow :: Test
+testOperatorShow = TestCase $ do
+    let executed = show (Add)
+    let expected = "Add"
+    assertEqual "show (Add)" expected (executed)
+
+testOperatorEq :: Test
+testOperatorEq = TestCase $ do
+    let executed = (Add) == (Add)
+    let expected = True
+    assertEqual "(Add) == (Add)" expected (executed)
+
+testFunctionShow :: Test
+testFunctionShow = TestCase $ do
+    let executed = show (Function [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret])
+    let expected = "Function [Push (IntValue 10),Push (IntValue 10),Push (Operator Eq),CallOp,Ret]"
+    assertEqual "show (Function [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testFunctionEq :: Test
+testFunctionEq = TestCase $ do
+    let executed = (Function [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret]) == (Function [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret])
+    let expected = True
+    assertEqual "(Function [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret]) == (Function [Push (IntValue 10), Push (IntValue 10), Push (Operator Eq), CallOp, Ret])" expected (executed)
+
+testStringValueShow :: Test
+testStringValueShow = TestCase $ do
+    let executed = show (StringValue "Hello World")
+    let expected = "StringValue \"Hello World\""
+    assertEqual "show (StringValue \"Hello World\")" expected (executed)
 
 tests :: Test
 tests = TestList [
@@ -600,7 +1186,93 @@ tests = TestList [
                     TestLabel "testParseSymbol" testParseSymbol,
                     TestLabel "testParseSymbolFail" testParseSymbolFail,
                     TestLabel "testParseWhiteSpace" testParseWhiteSpace,
-                    TestLabel "testParseWhiteSpaceFail" testParseWhiteSpaceFail
+                    TestLabel "testParseWhiteSpaceFail" testParseWhiteSpaceFail,
+                    TestLabel "testSubFailVM" testSubFailVM,
+                    TestLabel "testMulFailVM" testMulFailVM,
+                    TestLabel "testModFailVM" testModFailVM,
+                    TestLabel "testAndFailVM" testAndFailVM,
+                    TestLabel "testOrFailVM" testOrFailVM,
+                    TestLabel "testNotVM" testNotVM,
+                    TestLabel "testEqFailVM" testEqFailVM,
+                    TestLabel "testSupFailVM" testSupFailVM,
+                    TestLabel "testLessFailVM" testLessFailVM,
+                    TestLabel "testConcatFailVM" testConcatFailVM,
+                    TestLabel "testLessEqVM" testLessEqVM,
+                    TestLabel "testLessEqFailVM" testLessEqFailVM,
+                    TestLabel "testSupEqVM" testSupEqVM,
+                    TestLabel "testSupEqFailVM" testSupEqFailVM,
+                    TestLabel "testNotEqVM" testNotEqVM,
+                    TestLabel "testNotEq2VM" testNotEq2VM,
+                    TestLabel "testNotEqFailVM" testNotEqFailVM,
+                    TestLabel "testListOperationAddVM" testListOperationAddVM,
+                    TestLabel "testListOperationSubVM" testListOperationSubVM,
+                    TestLabel "testListOperationMulVM" testListOperationMulVM,
+                    TestLabel "testListOperationDivVM" testListOperationDivVM,
+                    TestLabel "testListOperationModVM" testListOperationModVM,
+                    TestLabel "testListOperationAndVM" testListOperationAndVM,
+                    TestLabel "testListOperationOrVM" testListOperationOrVM,
+                    TestLabel "testListOperationNotVM" testListOperationNotVM,
+                    TestLabel "testListOperateNotVM2" testListOperateNotVM2,
+                    TestLabel "testListOperationEqVM" testListOperationEqVM,
+                    TestLabel "testListOperationLessVM" testListOperationLessVM,
+                    TestLabel "testListOperationNotEqVM" testListOperationNotEqVM,
+                    TestLabel "testListOperationSupVM" testListOperationSupVM,
+                    TestLabel "testListOperationConcatVM" testListOperationConcatVM,
+                    TestLabel "testListOperationLessEqVM" testListOperationLessEqVM,
+                    TestLabel "testListOperationSupEqVM" testListOperationSupEqVM,
+                    TestLabel "testListOperationSubFailVM" testListOperationSubFailVM,
+                    TestLabel "testListOperationDivFailVM" testListOperationDivFailVM,
+                    TestLabel "testListOperationModFailVM" testListOperationModFailVM,
+                    TestLabel "testListOperationNotFailVM" testListOperationNotFailVM,
+                    TestLabel "testListOperationEqFailVM" testListOperationEqFailVM,
+                    TestLabel "testListOperationLessFailVM" testListOperationLessFailVM,
+                    TestLabel "testListOperationNotEqFailVM" testListOperationNotEqFailVM,
+                    TestLabel "testListOperationSupFailVM" testListOperationSupFailVM,
+                    TestLabel "testListOperationLessEqFailVM" testListOperationLessEqFailVM,
+                    TestLabel "testListOperationSupEqFailVM" testListOperationSupEqFailVM,
+                    TestLabel "testOperationDivVM" testOperationDivVM,
+                    TestLabel "testOperationDivFailVM" testOperationDivFailVM,
+                    TestLabel "testOperationModVM" testOperationModVM,
+                    TestLabel "testOperationModFailVM" testOperationModFailVM,
+                    TestLabel "testOperationDivFailVM2" testOperationDivFailVM2,
+                    TestLabel "testOperationEqVM" testOperationEqVM,
+                    TestLabel "testOperationEqVM2" testOperationEqVM2,
+                    TestLabel "testOperationEqVM3" testOperationEqVM3,
+                    TestLabel "testOperatorEqVM3" testOperatorEqVM3,
+                    TestLabel "testOperationEqVM4" testOperationEqVM4,
+                    TestLabel "testOperationLessVM" testOperationLessVM,
+                    TestLabel "testOperationNotVM" testOperationNotVM,
+                    TestLabel "testOperationNotVM2" testOperationNotVM2,
+                    TestLabel "testOperationOrVM" testOperationOrVM,
+                    TestLabel "testOperationOrVM2" testOperationOrVM2,
+                    TestLabel "testOperationEqVM5" testOperationEqVM5,
+                    TestLabel "testOperationModFailVM2" testOperationModFailVM2,
+                    TestLabel "testListOperationDivVM" testListOperationDivVM,
+                    TestLabel "testAssignmentFailVM" testAssignmentFailVM,
+                    TestLabel "testJumpIfFalseFailVM" testJumpIfFalseFailVM,
+                    TestLabel "testJumpIfTrue1VM" testJumpIfTrue1VM,
+                    TestLabel "testJumpIfTrue2VM" testJumpIfTrue2VM,
+                    TestLabel "testJumpIfTrueFailVM" testJumpIfTrueFailVM,
+                    TestLabel "testAssignmentVM3" testAssignmentVM3,
+                    TestLabel "testPushArgsOutOfBounds" testPushArgsOutOfBounds,
+                    TestLabel "testPushVMEnvFailVM" testPushVMEnvFailVM,
+                    TestLabel "testAssignEnvValueFailVM" testAssignEnvValueFailVM,
+                    TestLabel "testCallOpFailVM" testCallOpFailVM,
+                    TestLabel "testIntValueShow" testIntValueShow,
+                    TestLabel "testIntValueEq" testIntValueEq,
+                    TestLabel "testBoolValueShow" testBoolValueShow,
+                    TestLabel "testBoolValueEq" testBoolValueEq,
+                    TestLabel "testOperatorShow" testOperatorShow,
+                    TestLabel "testOperatorEq" testOperatorEq,
+                    TestLabel "testFunctionShow" testFunctionShow,
+                    TestLabel "testFunctionEq" testFunctionEq,
+                    TestLabel "testStringValueShow" testStringValueShow,
+                    TestLabel "testShowAstInt" testShowAstInt,
+                    TestLabel "testShowAstString" testShowAstString,
+                    TestLabel "testShowAstBool" testShowAstBool,
+                    TestLabel "testShowAstSymbol" testShowAstSymbol,
+                    TestLabel "testShowAstMathOp" testShowAstMathOp,
+                    TestLabel "testShowAstList" testShowAstList
                 ]
 
 main :: IO Counts
