@@ -1,5 +1,8 @@
-test(arg) => (
-    let x = arg;
+fact(a) => (
+  if (a == 1) then: (
+    return (1);
+  )
+  return (fact(a - 1) * a);
 );
 
-test("hi");
+fact(5);
