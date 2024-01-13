@@ -274,11 +274,163 @@ testPushToOutputVM = TestCase $ do
     let expected = Right ([], [], [], [], [IntValue 6, StringValue "Hello World!"])
     assertEqual "execute [] [(\"fact\", (Function [PushArg 0, Push (IntValue 1), Push (Operator Eq), CallOp, JumpIfFalse 2, Push (IntValue 1), PushToOutput, Ret, Push (IntValue 1), PushArg 0, Push (Operator Sub), CallOp, PushVMEnv \"fact\", Call 1, PushArg 0, Push (Operator Mul), CallOp, PushToOutput, Ret]))] ([], [Push (IntValue 3), PushVMEnv \"fact\", Call 1, Push (StringValue \"Hello World!\"), PushToOutput, Ret])" expected (executed)
 
-testMultipleConditionalOperations :: Test
-testMultipleConditionalOperations = TestCase $ do
+-- Example testMultipleConditionalOperationsVM
+-- Push 5
+-- Push 5
+-- Push Eq
+-- CallOp
+-- Push 4
+-- Push 3
+-- Push Eq
+-- CallOp
+-- Push 6
+-- Push 6
+-- Push Eq
+-- CallOp
+-- Push And
+-- CallOp
+-- Push And
+-- CallOp
+-- JumpIfFalse 3
+-- Push True
+-- PushToOutput
+-- Jump 2
+-- Push False
+-- PushToOutput
+-- Push (StringValue "outside")
+-- PushToOutput
+-- Ret
+-- # exec => output: False\noutside\n
+
+testMultipleConditionalOperationsVM :: Test
+testMultipleConditionalOperationsVM = TestCase $ do
     let executed = execute [] [] ([], [Push (IntValue 5), Push (IntValue 5), Push (Operator Eq), CallOp, Push (IntValue 4), Push (IntValue 3), Push (Operator Eq), CallOp, Push (IntValue 6), Push (IntValue 6), Push (Operator Eq), CallOp, Push (Operator And), CallOp, Push (Operator And), CallOp, JumpIfFalse 3,  Push (BoolValue True), PushToOutput, Jump 2, Push (BoolValue False), PushToOutput, Push (StringValue "outside"), PushToOutput], [], [], [])
     let expected = Right ([],[],[],[],[BoolValue False,StringValue "outside"])
     assertEqual "execute [] [] ([], [Push (IntValue 3), Push (IntValue 2), Push (Operator Sup), CallOp, JumpIfFalse 2, Push (IntValue 1), Ret, Push (IntValue 2), Ret])" expected (executed)
+
+-- Example testArithmeticOperationsVM
+-- Push 5
+-- Push 10
+-- Push 12
+-- Push Sub
+-- CallOp
+-- Push Add
+-- CallOp
+-- AssignEnvValue "x"
+-- PushVMEnv "x"
+-- Ret
+-- # exec => 7
+
+testArithmeticOperationsVM :: Test
+testArithmeticOperationsVM = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 5), Push (IntValue 10), Push (IntValue 12), Push (Operator Sub), CallOp, Push (Operator Add), CallOp, AssignEnvValue "x", PushVMEnv "x", Ret], [], [], [])
+    let expected = Right ([IntValue 7],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 5), Push (IntValue 10), Push (IntValue 12), Push (Operator Sub), CallOp, Push (Operator Add), CallOp, AssignEnvValue \"x\", Ret])" expected (executed)
+
+-- Example testArithmeticOperationsVM2
+-- Push 1
+-- Push 1
+-- Push Add
+-- CallOp
+-- AssignEnvValue "b"
+-- Push 2
+-- Push 2
+-- Push Add
+-- CallOp
+-- AssignEnvValue "a"
+-- PushVMEnv "b"
+-- PushVMEnv "a"
+-- Push Add
+-- CallOp
+-- AssignEnvValue "a"
+-- PushVMEnv "a"
+-- Ret
+-- # exec => 6
+
+testArithmeticOperationsVM2 :: Test
+testArithmeticOperationsVM2 = TestCase $ do
+    let executed = execute [] [] ([], [Push (IntValue 1), Push (IntValue 1), Push (Operator Add), CallOp, AssignEnvValue "b", Push (IntValue 2), Push (IntValue 2), Push (Operator Add), CallOp, AssignEnvValue "a", PushVMEnv "b", PushVMEnv "a", Push (Operator Add), CallOp, AssignEnvValue "a", PushVMEnv "a", Ret], [], [], [])
+    let expected = Right ([IntValue 6],[],[],[],[])
+    assertEqual "execute [] [] ([], [Push (IntValue 1), Push (IntValue 1), Push (Operator Add), CallOp, AssignEnvValue \"b\", Push (IntValue 2), Push (IntValue 2), Push (Operator Add), CallOp, AssignEnvValue \"a\", PushVMEnv \"b\", PushVMEnv \"a\", Push (Operator Add), CallOp, AssignEnvValue \"a\", PushVMEnv \"a\", Ret])" expected (executed)
+
+-- Example testArithmeticOperationsVM3
+-- Push 1
+-- Push 1
+-- Push Add
+-- CallOp
+-- AssignEnvValue "b"
+-- Push 2
+-- Push 2
+-- Push Add
+-- CallOp
+-- AssignEnvValue "a"
+-- PushVMEnv "b"
+-- PushVMEnv "a"
+-- Push Add
+-- CallOp
+-- AssignEnvValue "a"
+-- PushVMEnv "a"
+-- Ret
+-- # exec => 6
+
+testAssignmentVM :: Test
+testAssignmentVM = TestCase $ do
+    let executed = execute [] [("a", (IntValue 1)), ("b", (IntValue 1))] ([], [PushVMEnv "a", PushVMEnv "b", Push (Operator Eq), CallOp, JumpIfFalse 3, Push (IntValue 10), AssignEnvValue "x", Jump 2, Push (IntValue 11), AssignEnvValue "x", PushVMEnv "x", Ret], [], [], [])
+    let expected = Right ([IntValue 10],[],[],[],[])
+    assertEqual "execute [] [(\"a\", (IntValue 1)), (\"b\", (IntValue 1))] ([], [PushVMEnv \"a\", PushVMEnv \"b\", Push (Operator Eq), CallOp, JumpIfFalse 3, Push (IntValue 10), AssignEnvValue \"x\", Jump 2, Push (IntValue 11), AssignEnvValue \"x\", PushVMEnv \"x\", Ret])" expected (executed)
+
+-- Example testAssignmentVM2
+-- Push "hi"
+-- PushVMEnv "test"
+-- Call 1
+-- Ret
+-- # exec => "hi"
+-- env =
+--     test =
+--         PushArg 0
+--         AssignEnvValue "x"
+--         PushVMEnv "x"
+--         Ret
+
+testAssignmentVM2 :: Test
+testAssignmentVM2 = TestCase $ do
+    let executed = execute [] [("test", (Function [PushArg 0, AssignEnvValue "x", PushVMEnv "x", Ret]))] ([], [Push (StringValue "hi"), PushVMEnv "test", Call 1, Ret], [], [], [])
+    let expected = Right ([StringValue "hi"],[],[],[],[])
+    assertEqual "execute [] [(\"test\", (Function [PushArg 0, AssignEnvValue \"x\", PushVMEnv \"x\", Ret]))] ([], [Push (StringValue \"hi\"), PushVMEnv \"test\", Call 1, Ret])" expected (executed)
+
+-- Example testAssignmentVM3
+-- PushVMEnv "a"
+-- PushVMEnv "b"
+-- Push (Operator Add)
+-- CallOp
+-- PushVMEnv "c"
+-- Push (Operator Add)
+-- CallOp
+-- AssignEnvValue "d"
+
+testAssignmentVM3 :: Test
+testAssignmentVM3 = TestCase $ do
+    let executed = execute [] [("a", (IntValue 5)), ("b", (IntValue 10)), ("c", (IntValue 3)), ("test2", (Function [Push (IntValue 45), Ret])), ("test", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue "d", PushVMEnv "d", Ret]))] ([], [PushVMEnv "a", PushVMEnv "b", PushVMEnv "c", PushVMEnv "test", Call 3, Ret], [], [], [])
+    let expected = Right ([IntValue 18],[],[],[],[])
+    assertEqual "execute [] [(\"a\", (IntValue 5)), (\"b\", (IntValue 10)), (\"c\", (IntValue 3)), (\"test2\", (Function [Push (IntValue 45), Ret])), (\"test\", (Function [PushArg 0, PushArg 1, Push (Operator Add), CallOp, PushArg 2, Push (Operator Add), CallOp, AssignEnvValue \"d\", PushVMEnv \"d\", Ret]))] ([], [PushVMEnv \"a\", PushVMEnv \"b\", PushVMEnv \"c\", PushVMEnv \"test\", Call 3, Ret])" expected (executed)
+
+-- Example testArithmeticOperationsVM6
+-- PushVMEnv "test"
+-- Call 0
+-- Ret
+-- # exec => 5
+-- env =
+--     test =
+--         Push 5
+--         AssignEnvValue "x"
+--         PushVMEnv "x"
+--         Ret
+
+testAssignmentVM4 :: Test
+testAssignmentVM4 = TestCase $ do
+    let executed = execute [] [("test", (Function [Push (IntValue 5), AssignEnvValue "x", PushVMEnv "x"]))] ([], [PushVMEnv "test", Call 0, Ret], [], [], [])
+    let expected = Right ([IntValue 5],[],[],[],[])
+    assertEqual "execute [] [(\"test\", (Function [Push (IntValue 5), AssignEnvValue \"x\", PushVMEnv \"x\", Ret]))] ([], [PushVMEnv \"test\", Call 0, Ret])" expected (executed)
 
 tests :: Test
 tests = TestList [
@@ -295,7 +447,13 @@ tests = TestList [
                     TestLabel "testConcatVM" testConcatVM,
                     TestLabel "testFunctionVM" testFunctionVM,
                     TestLabel "testPushToOutputVM" testPushToOutputVM,
-                    TestLabel "testMultipleConditionalOperations" testMultipleConditionalOperations
+                    TestLabel "testMultipleConditionalOperationsVM" testMultipleConditionalOperationsVM,
+                    TestLabel "testArithmeticOperationsVM" testArithmeticOperationsVM,
+                    TestLabel "testArithmeticOperationsVM2" testArithmeticOperationsVM2,
+                    TestLabel "testAssignmentVM" testAssignmentVM,
+                    TestLabel "testAssignmentVM2" testAssignmentVM2,
+                    TestLabel "testAssignmentVM3" testAssignmentVM3,
+                    TestLabel "testAssignmentVM4" testAssignmentVM4
                 ]
 
 main :: IO Counts

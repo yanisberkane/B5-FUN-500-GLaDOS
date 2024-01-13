@@ -19,6 +19,7 @@ data Operator = Add
             | Or
             | Not
             | Eq
+            | NotEq
             | Less
             | Sup
             | Concat

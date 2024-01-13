@@ -29,26 +29,36 @@ processAst (If cond thenBranch elseBranch) (env, insts) =
 processAst _ (env, insts) = (env, insts)
 
 interpretCondition :: Ast -> Insts
-interpretCondition (AstList [left, LogicOperator op, right]) =
-    case op of
-        "<=" -> interpretCompositeOp left right ["<", "=="]
-        ">=" -> interpretCompositeOp left right [">", "=="]
-        _    -> interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator (logicStringToOperator op)), CallOp]
+interpretCondition (AstList exprs) = interpretComplexCondition exprs
 interpretCondition _ = error "Invalid condition"
 
-interpretCompositeOp :: Ast -> Ast -> [String] -> Insts
-interpretCompositeOp left right ops =
-    let leftInsts = interpretMathOpOrValue left
-        rightInsts = interpretMathOpOrValue right
-        opInsts = concatMap (\op -> leftInsts ++ rightInsts ++ [Push (Operator (logicStringToOperator op)), CallOp]) ops
-    in opInsts ++ [Push (Operator Or), CallOp]
+interpretComplexCondition :: [Ast] -> Insts
+interpretComplexCondition exprs = processConditions exprs [] []
+
+processConditions :: [Ast] -> [Operator] -> Insts -> Insts
+processConditions [] ops insts = insts ++ concatMap (\op -> [Push (Operator op), CallOp]) ops
+processConditions (LogicOperator op : rest) ops insts =
+    let newOp = logicStringToOperator op
+    in if newOp `elem` [And, Or, Not]
+       then processConditions rest (ops ++ [newOp]) insts
+       else processConditions rest ops insts
+processConditions (left : LogicOperator op : right : rest) ops insts =
+    let newOp = logicStringToOperator op
+    in if newOp `elem` [And, Or, Not]
+       then processConditions rest (ops ++ [newOp]) (insts ++ interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator newOp), CallOp])
+       else processConditions rest ops (insts ++ interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator newOp), CallOp])
+processConditions exprs _ _ = error $ "Unexpected pattern: " ++ show exprs
 
 logicStringToOperator :: String -> Operator
 logicStringToOperator "==" = Eq
 logicStringToOperator "<"  = Less
 logicStringToOperator ">"  = Sup
+logicStringToOperator "<=" = LessEq
+logicStringToOperator ">=" = SupEq
 logicStringToOperator "&&" = And
 logicStringToOperator "||" = Or
+logicStringToOperator "!=" = NotEq
+logicStringToOperator "!"  = Not
 logicStringToOperator _ = error "Unknown logic operator"
 
 interpretMathOpOrValue :: Ast -> Insts

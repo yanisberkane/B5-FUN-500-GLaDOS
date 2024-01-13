@@ -62,9 +62,12 @@ executeOperation And _ = Left "Error: And needs two arguments"
 executeOperation Or (BoolValue a : BoolValue b : stack) = Right (BoolValue (a || b) : stack)
 executeOperation Or _ = Left "Error: Or needs two arguments"
 executeOperation Not (BoolValue a : stack) = Right (BoolValue (not a) : stack)
-executeOperation Not _ = Left "Error: Not needs one boolean argument"
+executeOperation Not (IntValue a : stack) = Right (BoolValue (a == 0) : stack)
+executeOperation Not _ = Left "Error: Not needs one argument"
 executeOperation Eq (IntValue a : IntValue b : stack) = Right (BoolValue (a == b) : stack)
 executeOperation Eq (BoolValue a : BoolValue b : stack) = Right (BoolValue (a == b) : stack)
+executeOperation Eq (IntValue a : BoolValue b : stack) = Right (BoolValue (a == (if b then 1 else 0)) : stack)
+executeOperation Eq (BoolValue a : IntValue b : stack) = Right (BoolValue ((if a then 1 else 0) == b) : stack)
 executeOperation Eq _ = Left "Error: Eq needs two arguments of the same type"
 executeOperation Less (IntValue a : IntValue b : stack) = Right (BoolValue (a > b) : stack)
 executeOperation Less _ = Left "Error: Less needs two arguments of the same type"
@@ -76,6 +79,9 @@ executeOperation LessEq (IntValue a : IntValue b : stack) = Right (BoolValue (a 
 executeOperation LessEq _ = Left "Error: LessEq needs two arguments of the same type"
 executeOperation SupEq (IntValue a : IntValue b : stack) = Right (BoolValue (a <= b) : stack)
 executeOperation SupEq _ = Left "Error: SupEq needs two arguments of the same type"
+executeOperation NotEq (IntValue a : IntValue b : stack) = Right (BoolValue (a /= b) : stack)
+executeOperation NotEq (BoolValue a : BoolValue b : stack) = Right (BoolValue (a /= b) : stack)
+executeOperation NotEq _ = Left "Error: NotEq needs two arguments of the same type"
 
 executeListOperation :: Operator -> [Value] -> Either String Value
 executeListOperation Add xs = Right $ IntValue $ sum [x | IntValue x <- xs]
@@ -91,9 +97,19 @@ executeListOperation Mod (x:xs) = Right $ IntValue $ foldl (mod) (toInt x) [toIn
 executeListOperation Mod _ = Left "Error: Mod needs at least one argument"
 executeListOperation And xs = Right $ BoolValue $ and [x | BoolValue x <- xs]
 executeListOperation Or xs = Right $ BoolValue $ or [x | BoolValue x <- xs]
-executeListOperation Not (BoolValue x:_) = Right $ BoolValue $ not x
-executeListOperation Not _ = Left "Error: Not needs one boolean argument"
+executeListOperation Not (BoolValue x : xs) = Right $ BoolValue $ and [not x' | BoolValue x' <- xs]
+executeListOperation Not (IntValue x : xs) = Right $ BoolValue $ and [x' == 0 | IntValue x' <- xs]
+executeListOperation Not _ = Left "Error: Not needs at least one argument"
 executeListOperation Eq (x:xs) = Right $ BoolValue $ and [x == x' | x' <- xs]
 executeListOperation Eq _ = Left "Error: Eq needs at least one argument"
 executeListOperation Less (IntValue x : xs) = Right $ BoolValue $ and [x < x' | IntValue x' <- xs]
 executeListOperation Less _ = Left "Error: Less needs at least one argument"
+executeListOperation NotEq (x:xs) = Right $ BoolValue $ or [x /= x' | x' <- xs]
+executeListOperation NotEq _ = Left "Error: NotEq needs at least one argument"
+executeListOperation Sup (IntValue x : xs) = Right $ BoolValue $ and [x > x' | IntValue x' <- xs]
+executeListOperation Sup _ = Left "Error: Sup needs at least one argument"
+executeListOperation Concat xs = Right $ StringValue $ concat [x | StringValue x <- xs]
+executeListOperation LessEq (IntValue x : xs) = Right $ BoolValue $ and [x <= x' | IntValue x' <- xs]
+executeListOperation LessEq _ = Left "Error: LessEq needs at least one argument"
+executeListOperation SupEq (IntValue x : xs) = Right $ BoolValue $ and [x >= x' | IntValue x' <- xs]
+executeListOperation SupEq _ = Left "Error: SupEq needs at least one argument"
