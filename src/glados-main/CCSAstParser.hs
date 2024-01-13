@@ -94,7 +94,6 @@ parseMathOperation = parseMany parseWhiteSpace
 
 parseCCSAst :: Parser Ast
 parseCCSAst = parseAstLogicOperator
-          <|> parseAstOperator
           <|> parseMathOperation
           <|> parseIf
           <|> parseDefine
@@ -106,6 +105,7 @@ parseCCSAst = parseAstLogicOperator
           <|> parseAstList
           <|> parseAstBool
           <|> parseAstInt
+          <|> parseAstOperator
           <|> parseAstString
           <|> parseAstSymbol
 
