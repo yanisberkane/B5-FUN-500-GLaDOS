@@ -31,6 +31,8 @@ instance Binary Operator where
     put Less = put (9 :: Int)
     put Sup = put (10 :: Int)
     put Concat = put (11 :: Int)
+    put LessEq = put (12 :: Int)
+    put SupEq = put (13 :: Int)
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> return Add
         1 -> return Sub
@@ -44,6 +46,8 @@ instance Binary Operator where
         9 -> return Less
         10 -> return Sup
         11 -> return Concat
+        12 -> return LessEq
+        13 -> return SupEq
 
 instance Binary Instruction where
     put (Push v) = put (0 :: Int) >> put v
@@ -57,6 +61,7 @@ instance Binary Instruction where
     put (CallOp) = put (8 :: Int)
     put (PushToOutput) = put (9 :: Int)
     put (Jump i) = put (10 :: Int) >> put i
+    put (JumpIfTrue i) = put (11 :: Int) >> put i
     get = (get :: Get Int) >>= \tag -> case tag of
         0 -> get >>= \v -> return $ Push v
         1 -> get >>= \i -> return $ Call i
@@ -69,6 +74,7 @@ instance Binary Instruction where
         8 -> return CallOp
         9 -> return PushToOutput
         10 -> get >>= \i -> return $ Jump i
+        11 -> get >>= \i -> return $ JumpIfTrue i
 
 writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO ()
 writeStateToFile filename envinsts =  encodeFile filename envinsts

@@ -15,7 +15,7 @@ build: clean
 
 test: clean
 	stack build --copy-bins --local-bin-path .
-#	stack test --coverage
+	stack test --coverage
 
 clean:
 	stack clean
