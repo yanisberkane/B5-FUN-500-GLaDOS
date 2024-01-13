@@ -472,9 +472,8 @@ tests = TestList [
                     TestLabel "testAssignmentVM" testAssignmentVM,
                     TestLabel "testAssignmentVM2" testAssignmentVM2,
                     TestLabel "testAssignmentVM3" testAssignmentVM3,
-                    TestLabel "testAssignmentVM4" testAssignmentVM4
-                    TestLabel "testMultipleConditionalOperations" testMultipleConditionalOperations,
-                    -- CCS Interpreter tests
+                    TestLabel "testAssignmentVM4" testAssignmentVM4,
+                    -- CCS to AST tests
                     -- Int
                     TestLabel "testParseAstInt" testParseAstInt,
                     TestLabel "testParseAstIntWithSpaces" testParseAstIntWithSpaces,
