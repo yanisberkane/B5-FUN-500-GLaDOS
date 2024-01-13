@@ -39,12 +39,12 @@ processConditions :: [Ast] -> [Operator] -> Insts -> Insts
 processConditions [] ops insts = insts ++ concatMap (\op -> [Push (Operator op), CallOp]) ops
 processConditions (LogicOperator op : rest) ops insts =
     let newOp = logicStringToOperator op
-    in if newOp `elem` [And, Or]
+    in if newOp `elem` [And, Or, Not]
        then processConditions rest (ops ++ [newOp]) insts
        else processConditions rest ops insts
 processConditions (left : LogicOperator op : right : rest) ops insts =
     let newOp = logicStringToOperator op
-    in if newOp `elem` [And, Or]
+    in if newOp `elem` [And, Or, Not]
        then processConditions rest (ops ++ [newOp]) (insts ++ interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator newOp), CallOp])
        else processConditions rest ops (insts ++ interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator newOp), CallOp])
 processConditions exprs _ _ = error $ "Unexpected pattern: " ++ show exprs
@@ -57,6 +57,8 @@ logicStringToOperator "<=" = LessEq
 logicStringToOperator ">=" = SupEq
 logicStringToOperator "&&" = And
 logicStringToOperator "||" = Or
+logicStringToOperator "!=" = NotEq
+logicStringToOperator "!"  = Not
 logicStringToOperator _ = error "Unknown logic operator"
 
 interpretMathOpOrValue :: Ast -> Insts
