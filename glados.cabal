@@ -32,6 +32,11 @@ test-suite glados-test
   type:              exitcode-stdio-1.0
   hs-source-dirs:    test
   main-is:           TestMain.hs
+  other-modules:     CCSAstParserArgList CCSAstParserAssign CCSAstParserBody
+                     CCSAstParserBool CCSAstParserDefine CCSAstParserInt CCSAstParserLambda
+                     CCSAstParserLogicOperators CCSAstParserMathOperators CCSAstParserSeparator
+                     CCSAstParserString CCSAstParserSymbol CCSAstParserList CCSAstParserCall
+                     CCSAstParserIf CCSAstParserNamedCall BufferToCCSAstParser ParserTests
   ghc-options: -fhpc
   build-depends:     base >= 4.7 && < 5
                    , glados

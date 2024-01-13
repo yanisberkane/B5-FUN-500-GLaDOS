@@ -1,4 +1,4 @@
-import Test.HUnit
+import Test.HUnit ( assertEqual, runTestTT, Counts(errors, failures), Test(..) )
 -- import Interpreter (evaluate)
 import Types (Ast(..), Env)
 import qualified Data.Map as Map
@@ -9,6 +9,25 @@ import System.Exit
 import VMExec (execute)
 import VMTypes
 
+import CCSAstParserInt
+import CCSAstParserBool
+import CCSAstParserSymbol
+import CCSAstParserString
+import CCSAstParserSeparator
+import CCSAstParserArgList
+import CCSAstParserBody
+import CCSAstParserLogicOperators
+import CCSAstParserMathOperators
+import CCSAstParserDefine
+import CCSAstParserAssign
+import CCSAstParserLambda
+import CCSAstParserList
+import CCSAstParserCall
+import CCSAstParserIf
+import CCSAstParserNamedCall
+import BufferToCCSAstParser
+import ParserTests
+import ParserTests (testParseAndFail2)
 -- Tests for the VM
 
 --- Example testPushVM
@@ -454,6 +473,135 @@ tests = TestList [
                     TestLabel "testAssignmentVM2" testAssignmentVM2,
                     TestLabel "testAssignmentVM3" testAssignmentVM3,
                     TestLabel "testAssignmentVM4" testAssignmentVM4
+                    TestLabel "testMultipleConditionalOperations" testMultipleConditionalOperations,
+                    -- CCS Interpreter tests
+                    -- Int
+                    TestLabel "testParseAstInt" testParseAstInt,
+                    TestLabel "testParseAstIntWithSpaces" testParseAstIntWithSpaces,
+                    TestLabel "testParseAstIntNegative" testParseAstIntNegative,
+                    TestLabel "testParseAstIntFail" testParseAstIntFail,
+                    TestLabel "testParseAstIntFail2" testParseAstIntFail2,
+                    -- Bool
+                    TestLabel "testParseAstBoolTrue" testParseAstBoolTrue,
+                    TestLabel "testParseAstBoolFalse" testParseAstBoolFalse,
+                    TestLabel "testParseAstBoolFail" testParseAstBoolFail,
+                    TestLabel "testParseAstBoolFail2" testParseAstBoolFail2,
+                    -- String
+                    TestLabel "testParseAstString" testParseAstString,
+                    TestLabel "testParseAstString2" testParseAstString2,
+                    TestLabel "testParseAstStringWithSpaces" testParseAstStringWithSpaces,
+                    TestLabel "testParseAstStringWithNumber" testParseAstStringWithNumber,
+                    TestLabel "testParseAstStringFail" testParseAstStringFail,
+                    -- Symbol
+                    TestLabel "testParseAstSymbol" testParseAstSymbol,
+                    TestLabel "testParseAstSymbolWithSpaces" testParseAstSymbolWithSpaces,
+                    TestLabel "testParseAstSymbolWithNumber" testParseAstSymbolWithNumber,
+                    TestLabel "testParseAstSymbolWithNumberAndUnderscore" testParseAstSymbolWithNumberAndUnderscore,
+                    TestLabel "testParseAstSymbolFail" testParseAstSymbolFail,
+                    TestLabel "testParseAstSymbolFail2" testParseAstSymbolFail2,
+                    -- Separator
+                    TestLabel "testParseAstSeparator" testParseAstSeparator,
+                    TestLabel "testParseAstSeparatorWithSpaces" testParseAstSeparatorWithSpaces,
+                    TestLabel "testParseAstSeparatorFail" testParseAstSeparatorFail,
+                    -- ArgList
+                    TestLabel "testParseAstArgList" testParseAstArgList,
+                    TestLabel "testParseAstArgListWithSpaces" testParseAstArgListWithSpaces,
+                    TestLabel "testParseAstArgListFail" testParseAstArgListFail,
+                    -- Body
+                    TestLabel "testParseAstBody" testParseAstBody,
+                    TestLabel "testParseAstBodyWithSpaces" testParseAstBodyWithSpaces,
+                    TestLabel "testParseAstBodyFail" testParseAstBodyFail,
+                    -- LogicOperators
+                    TestLabel "testParseAstLogicOperatorAnd" testParseAstLogicOperatorAnd,
+                    TestLabel "testParseAstLogicOperatorOr" testParseAstLogicOperatorOr,
+                    TestLabel "testParseAstLogicOperatorEqual" testParseAstLogicOperatorEqual,
+                    TestLabel "testParseAstLogicOperatorNotEqual" testParseAstLogicOperatorNotEqual,
+                    TestLabel "testParseAstLogicOperatorLessThan" testParseAstLogicOperatorLessThan,
+                    TestLabel "testParseAstLogicOperatorLessThanOrEqual" testParseAstLogicOperatorLessThanOrEqual,
+                    TestLabel "testParseAstLogicOperatorGreaterThan" testParseAstLogicOperatorGreaterThan,
+                    TestLabel "testParseAstLogicOperatorGreaterThanOrEqual" testParseAstLogicOperatorGreaterThanOrEqual,
+                    TestLabel "testParseAstLogicOperatorNot" testParseAstLogicOperatorNot,
+                    -- MathOperators
+                    TestLabel "testParseAstMathOperatorAdd" testParseAstOperatorAdd,
+                    TestLabel "testParseAstOperatorSub" testParseAstOperatorSub,
+                    TestLabel "testParseAstOperatorMul" testParseAstOperatorMul,
+                    TestLabel "testParseAstOperatorDiv" testParseAstOperatorDiv,
+                    TestLabel "testParseAstOperatorMod" testParseAstOperatorMod,
+                    -- Define
+                    TestLabel "testParseAstDefineLet" testParseAstDefineLet,
+                    TestLabel "testParseAstDefineVar" testParseAstDefineVar,
+                    TestLabel "testParseAstDefineLetWithSpaces" testParseAstDefineLetWithSpaces,
+                    TestLabel "testParseAstDefineVarWithSpaces" testParseAstDefineVarWithSpaces,
+                    TestLabel "testParseAstDefineFail" testParseAstDefineFail,
+                    TestLabel "testParseAstDefineFail2" testParseAstDefineFail2,
+                    TestLabel "testParseAstDefineFail3" testParseAstDefineFail3,
+                    TestLabel "testParseAstDefineFail4" testParseAstDefineFail4,
+                    -- Assign
+                    TestLabel "testParseAstAssignInt" testParseAstAssignInt,
+                    TestLabel "testParseAstAssignString" testParseAstAssignString,
+                    TestLabel "testParseAstAssignBool" testParseAstAssignBool,
+                    TestLabel "testParseAstAssignBool2" testParseAstAssignBool2,
+                    TestLabel "testParseAstAssignWithSpaces" testParseAstAssignWithSpaces,
+                    TestLabel "testParseAstAssignFail" testParseAstAssignFail,
+                    -- Lambda
+                    TestLabel "testParseAstLambda" testParseAstLambda,
+                    TestLabel "testParseAstLambda2" testParseAstLambda2,
+                    TestLabel "testParseAstLambda3" testParseAstLambda3,
+                    -- List
+                    TestLabel "testParseAstList" testParseAstList,
+                    TestLabel "testParseAstListFail" testParseAstListFail,
+                    -- Call
+                    TestLabel "testParseCall" testParseAstCall,
+                    TestLabel "testParseCall2" testParseAstCall2,
+                    TestLabel "testParseCallFail" testParseAstCallFail,
+                    -- If
+                    TestLabel "testParseIf" testParseAstIf,
+                    TestLabel "testParseIfElse" testParseAstIfElse,
+                    TestLabel "testParseIfTernary" testParseAstIfTernary,
+                    TestLabel "testParseIfFail" testParseAstIfFail,
+                    -- NamedCall
+                    TestLabel "testParseNamedCall" testParseAstNamedCall,
+                    TestLabel "testParseNamedCall2" testParseAstNamedCall2,
+                    TestLabel "testParseNamedCall3" testParseAstNamedCall3,
+                    -- BufferToCCSAstParser
+                    TestLabel "testParseBufferToCCSAst" testParseBufferToCCSAst,
+                    TestLabel "testParseBufferToCCSAst2" testParseBufferToCCSAst2,
+                    TestLabel "testParseBufferToCCSAstFail" testParseBufferToCCSAstFail,
+                    -- Parser
+                    TestLabel "testAlternative" testAlternative,
+                    TestLabel "testEmptyAlternative" testEmptyAlternative,
+                    TestLabel "testParseChar" testParseChar,
+                    TestLabel "testParseCharFail" testParseCharFail,
+                    TestLabel "testParseAnyChar" testParseAnyChar,
+                    TestLabel "testParseAnyCharFail" testParseAnyCharFail,
+                    TestLabel "testParseOr" testParseOr,
+                    TestLabel "testParseOr2" testParseOr2,
+                    TestLabel "testParseAnd" testParseAnd,
+                    TestLabel "testParseAndFail" testParseAndFail,
+                    TestLabel "testParseAndFail2" testParseAndFail2,
+                    TestLabel "testParseAndWith" testParseAndWith,
+                    TestLabel "testParseAndWithFail" testParseAndWithFail,
+                    TestLabel "testParseAndWithFail2" testParseAndWithFail2,
+                    TestLabel "testParseMany" testParseMany,
+                    TestLabel "testParseManyFail" testParseManyFail,
+                    TestLabel "testParseManyFail2" testParseManyFail2,
+                    TestLabel "testParseManyFail3" testParseManyFail3,
+                    TestLabel "testParseSome" testParseSome,
+                    TestLabel "testParseSomeFail" testParseSomeFail,
+                    TestLabel "testParseSomeFail2" testParseSomeFail2,
+                    TestLabel "testParseNoneOf" testParseNoneOf,
+                    TestLabel "testParseNoneOfFail" testParseNoneOfFail,
+                    TestLabel "testParseUInt" testParseUInt,
+                    TestLabel "testParseUIntFail" testParseUIntFail,
+                    TestLabel "testParseInt" testParseInt,
+                    TestLabel "testParseInt2" testParseInt2,
+                    TestLabel "testParseIntFail" testParseIntFail,
+                    TestLabel "testParseQuotedSymbol" testParseQuotedSymbol,
+                    TestLabel "testParseQuotedSymbolFail" testParseQuotedSymbolFail,
+                    TestLabel "testParseSymbol" testParseSymbol,
+                    TestLabel "testParseSymbolFail" testParseSymbolFail,
+                    TestLabel "testParseWhiteSpace" testParseWhiteSpace,
+                    TestLabel "testParseWhiteSpaceFail" testParseWhiteSpaceFail
                 ]
 
 main :: IO Counts

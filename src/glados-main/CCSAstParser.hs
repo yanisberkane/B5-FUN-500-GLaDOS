@@ -1,6 +1,4 @@
-module CCSAstParser (
-    bufferToCCSAst
-) where
+module CCSAstParser where
 import Types
 import Parser
 import Control.Applicative
@@ -114,4 +112,3 @@ parseCCSAst = parseAstLogicOperator
 bufferToCCSAst :: String -> Maybe [Ast]
 bufferToCCSAst buffer = case runParser (parseMany parseCCSAst) buffer of
     Just (x, _) -> Just x
-    Nothing -> Nothing

@@ -15,7 +15,6 @@ module Parser (
     parseWhiteSpace,
     parseString,
     parseBool,
-    parseNot,
     parseOperator,
     parseLogicOperator,
     parseNoneOf) where
@@ -65,11 +64,6 @@ parseAnyChar str = Parser $ \case
 
 parseOr :: Parser a -> Parser a -> Parser a
 parseOr p1 p2 = Parser $ \str -> runParser p1 str <|> runParser p2 str
-
-parseNot :: Parser a -> Parser a
-parseNot p = Parser $ \str -> case runParser p str of
-    Just _ -> Nothing
-    Nothing -> Just (undefined, str)
 
 parseAnd :: Parser a -> Parser b -> Parser (a, b)
 parseAnd p1 p2 = Parser $ \str -> case runParser p1 str of
