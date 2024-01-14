@@ -2,6 +2,8 @@ module Interpreter (interpretAST) where
 
 import Types
 import VMTypes
+import Data.Maybe (fromJust)
+import Data.List (elemIndex)
 
 interpretAST :: [Ast] -> (VMEnv, Insts)
 interpretAST astList = let (env, insts) = foldl (flip processAst) ([], []) astList
@@ -9,24 +11,24 @@ interpretAST astList = let (env, insts) = foldl (flip processAst) ([], []) astLi
 
 processAst :: Ast -> (VMEnv, Insts) -> (VMEnv, Insts)
 processAst (Define (AstSymbol sym) value) (env, insts) =
-    let valueInsts = interpretMathOpOrValue value
+    let valueInsts = interpretMathOpOrValue [] value
     in (env, insts ++ valueInsts ++ [AssignEnvValue sym])
 processAst (Assign (AstSymbol sym) value) (env, insts) =
-    let valueInsts = interpretMathOpOrValue value
+    let valueInsts = interpretMathOpOrValue [] value
     in (env, insts ++ valueInsts ++ [AssignEnvValue sym])
 processAst (AstCall (AstSymbol "print") (AstList args)) (env, insts) =
-    let argsInsts = concatMap interpretMathOpOrValue args
+    let argsInsts = concatMap (interpretMathOpOrValue []) args
     in (env, insts ++ argsInsts ++ [PushToOutput])
 processAst (AstCall (AstSymbol "return") (AstList [returnValue])) (env, insts) =
-    let returnInsts = interpretMathOpOrValue returnValue
+    let returnInsts = interpretMathOpOrValue [] returnValue
     in (env, insts ++ returnInsts)
 processAst (AstCall (AstSymbol fName) (AstList args)) (env, insts) =
-    let argsInsts = concatMap interpretMathOpOrValue args
+    let argsInsts = concatMap (interpretMathOpOrValue []) (reverse args)
     in (env, insts ++ argsInsts ++ [PushVMEnv fName, Call (length args)])
 processAst (NamedCall (AstSymbol fName) (Lambda (AstList params) (AstList body))) (env, insts) =
     let paramNames = map (\(AstSymbol s) -> s) params
-        bodyInsts = concatMap (\ast -> snd (processAst ast (env, insts))) body
-        funcInsts = concat (zipWith (\name idx -> [PushArg idx, AssignEnvValue name]) paramNames [0..]) ++ bodyInsts ++ [Ret]
+        bodyInsts = concatMap (\ast -> snd (processAst ast (env, []))) body
+        funcInsts = replaceSymbolsWithArgs paramNames bodyInsts ++ [Ret]
     in ((fName, Function funcInsts):env, insts)
 processAst (If cond thenBranch elseBranch) (env, insts) =
     let condInsts = interpretCondition cond
@@ -38,6 +40,12 @@ processAst (If cond thenBranch elseBranch) (env, insts) =
         skipElseInst = if null elseInsts then [] else [Jump (length elseInsts)]
     in (env, insts ++ condInsts ++ jumpOverThen ++ thenInsts ++ skipElseInst ++ elseInsts)
 processAst _ (env, insts) = (env, insts)
+
+replaceSymbolsWithArgs :: [String] -> Insts -> Insts
+replaceSymbolsWithArgs params insts = map replace insts
+  where
+    replace (PushVMEnv sym) | sym `elem` params = PushArg (fromJust $ elemIndex sym params)
+    replace inst = inst
 
 interpretCondition :: Ast -> Insts
 interpretCondition (AstList exprs) = interpretComplexCondition exprs
@@ -56,8 +64,8 @@ processConditions (LogicOperator op : rest) ops insts =
 processConditions (left : LogicOperator op : right : rest) ops insts =
     let newOp = logicStringToOperator op
     in if newOp `elem` [And, Or, Not]
-       then processConditions rest (ops ++ [newOp]) (insts ++ interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator newOp), CallOp])
-       else processConditions rest ops (insts ++ interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator newOp), CallOp])
+       then processConditions rest (ops ++ [newOp]) (insts ++ interpretMathOpOrValue [] left ++ interpretMathOpOrValue [] right ++ [Push (Operator newOp), CallOp])
+       else processConditions rest ops (insts ++ interpretMathOpOrValue [] left ++ interpretMathOpOrValue [] right ++ [Push (Operator newOp), CallOp])
 processConditions exprs _ _ = error $ "Unexpected pattern: " ++ show exprs
 
 logicStringToOperator :: String -> Operator
@@ -72,18 +80,23 @@ logicStringToOperator "!=" = NotEq
 logicStringToOperator "!"  = Not
 logicStringToOperator _ = error "Unknown logic operator"
 
-interpretMathOpOrValue :: Ast -> Insts
-interpretMathOpOrValue (AstMathOp left op right) =
-    let leftInsts = interpretMathOpOrValue left
-        rightInsts = interpretMathOpOrValue right
+interpretMathOpOrValue :: [String] -> Ast -> Insts
+interpretMathOpOrValue params (AstMathOp left op right) =
+    let rightInsts = interpretMathOpOrValue params right
+        leftInsts = interpretMathOpOrValue params left
         opInst = [Push (Operator (stringToOperator (astOperatorToString op))), CallOp]
-    in leftInsts ++ rightInsts ++ opInst
-interpretMathOpOrValue (AstSymbol sym) = [PushVMEnv sym]
-interpretMathOpOrValue (AstCall (AstSymbol fName) (AstList args)) =
-    let argsInsts = concatMap interpretMathOpOrValue args
+    in case op of
+        AstOperator "-" -> rightInsts ++ leftInsts ++ opInst
+        _ -> leftInsts ++ rightInsts ++ opInst
+interpretMathOpOrValue params (AstSymbol sym) =
+    if sym `elem` params
+    then [PushArg (fromJust $ elemIndex sym params)]
+    else [PushVMEnv sym]
+interpretMathOpOrValue params (AstCall (AstSymbol fName) (AstList args)) =
+    let argsInsts = concatMap (interpretMathOpOrValue params) args
     in argsInsts ++ [PushVMEnv fName, Call (length args)]
-interpretMathOpOrValue (AstList lst) = concatMap interpretMathOpOrValue lst
-interpretMathOpOrValue ast = [Push (interpretValue ast)]
+interpretMathOpOrValue params (AstList lst) = concatMap (interpretMathOpOrValue params) lst
+interpretMathOpOrValue _ (AstInt i) = [Push (IntValue i)]
 
 astOperatorToString :: Ast -> String
 astOperatorToString (AstOperator op) = op
@@ -101,4 +114,4 @@ interpretValue (AstInt i) = IntValue i
 interpretValue (AstBool b) = BoolValue b
 interpretValue (AstString s) = StringValue s
 interpretValue (AstSymbol sym) = error $ "Unexpected symbol in direct value context: " ++ sym
-interpretValue _ = error "Invalid value"
+interpretValue ast = error $ "Invalid value for AST node: " ++ show ast
