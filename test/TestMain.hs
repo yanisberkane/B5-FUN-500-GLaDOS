@@ -1,6 +1,6 @@
 import Test.HUnit ( assertEqual, runTestTT, Counts(errors, failures), Test(..) )
 -- import Interpreter (evaluate)
-import Types (Ast(..), Env)
+import Types (Ast(..))
 import qualified Data.Map as Map
 import ErrorHandler (ErrorType(..))
 import Parser
