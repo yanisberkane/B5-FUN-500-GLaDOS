@@ -1,0 +1,5 @@
+AST tree:
+[Define (AstSymbol "x") (Lambda (AstList [AstSymbol "a",AstSymbol "b"]) (AstList [If (AstList [AstSymbol "a",LogicOperator "==",AstSymbol "b"]) (AstCall (AstSymbol "show") (AstList [AstString "a equals b"])) AstNone]))]
+(env)
+[]
+(insts)

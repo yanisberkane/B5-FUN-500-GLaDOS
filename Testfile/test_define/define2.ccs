@@ -1,1 +1,2 @@
 let x = "test";
+print(x);

@@ -1,0 +1,13 @@
+AST tree:
+[Define (AstSymbol "x") (AstString "test"),AstCall (AstSymbol "print") (AstList [AstSymbol "x"])]
+(env)
+[]
+(insts)
+[Push (StringValue "test"),AssignEnvValue "x",PushVMEnv "x",PushToOutput,Ret]
+Environment:
+Instructions:
+Push (StringValue "test")
+AssignEnvValue "x"
+PushVMEnv "x"
+PushToOutput
+Ret
