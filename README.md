@@ -1,8 +1,12 @@
 # GLaDOS - A Haskell-Based Programming Language
 
+![1705261792661](image/README/1705261792661.png)![1705262268662](image/README/1705262268662.png)
+
 ## Overview
 
-GLaDOS (Generic Language and Data Operand Syntax) is a custom programming language implemented in Haskell. The project's aim is to create a minimalist yet functional programming environment, inspired by languages like LISP and Scheme, and is designed with a focus on functional programming principles.
+GLaDOS (Generic Language and Data Operand Syntax) is a custom programming language implemented in Haskell. The project's aim is to create a minimalist yet functional programming environment, inspired by languages like LISP, C and Scheme, and is designed with a focus on functional programming principles.
+
+Our language is called CCS (Confused Code Syntax) and it produces DZ (Dazed) compiled files that you can execute using our VM.
 
 ## Features
 
@@ -19,7 +23,7 @@ GLaDOS (Generic Language and Data Operand Syntax) is a custom programming langua
 - Haskell
 - Stack (recommended build tool)
 
-### Installationa
+### Installation
 
 For Linux distributions, you need to run `./setup-haskell-stack.sh` in order to install Haskell and Stack.
 
@@ -27,10 +31,16 @@ Then, run `make build` to build GLaDOS binary.
 
 ### Running the Language
 
-To run a program written in GLaDOS, use the following command:
+To run a program written in CCS (Confused Code Syntax), use the following command to compile it:
 
 ```
-./glados yourfile.ccs 
+./glados yourFile.ccs 
+```
+
+A compiled ".dz" (Dazed) file will be generated, now run the following command to execute your code:
+
+```
+./glados-vm yourCompiledFile.dz
 ```
 
 ### Examples
