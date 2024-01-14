@@ -4,10 +4,12 @@ import Types
 import VMTypes
 import Data.Maybe (fromJust)
 import Data.List (elemIndex)
+import ErrorHandler (handleError, stringToErrorType, ErrorType(..))
 
-interpretAST :: [Ast] -> (VMEnv, Insts)
-interpretAST astList = let (env, insts) = foldl (flip processAst) ([], []) astList
-                       in (env, insts ++ [Ret])
+interpretAST :: [Ast] -> Either ErrorHandler.ErrorType (VMEnv, Insts)
+interpretAST [] = Left (stringToErrorType "Error: The file is empty. x_x")
+interpretAST astList = Right $ let (env, insts) = foldl (flip processAst) ([], []) astList
+                               in (env, insts ++ [Ret])
 
 processAst :: Ast -> (VMEnv, Insts) -> (VMEnv, Insts)
 processAst (Define (AstSymbol sym) value) (env, insts) =

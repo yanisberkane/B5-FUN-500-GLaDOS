@@ -29,13 +29,16 @@ handleReadError e = handleError $ InvalidArgumentError ("File error: " ++ show e
 processInput :: FilePath -> String -> Bool -> IO ()
 processInput filename input debugMode =
     case bufferToCCSAst input of
-        Just ast ->
-            let (env, insts) = interpretAST ast
-                outputFilename = takeBaseName filename <.> "dz"
-            in (if debugMode
-                then writeDebugInfo filename (env, insts)
-                else putStrLn (filename ++ " was compiled successfully. ^_^") >>
-                     writeEnvAndInstsToFile outputFilename (env, insts))
+        Just ast -> do
+            let result = interpretAST ast
+            case result of
+                Left err -> handleError err
+                Right (env, insts) ->
+                    let outputFilename = takeBaseName filename <.> "dz"
+                    in (if debugMode
+                        then writeDebugInfo filename (env, insts)
+                        else putStrLn (filename ++ " was compiled successfully. ^_^") >>
+                             writeEnvAndInstsToFile outputFilename (env, insts))
         Nothing -> handleError $ ParsingError "Failed to parse .ccs file."
 
 writeDebugInfo :: FilePath -> (VMEnv, Insts) -> IO ()
