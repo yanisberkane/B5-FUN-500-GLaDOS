@@ -1,6 +1,0 @@
-let a = 1;
-let b = 2;
-
-(a == b) ? let x = 10; : let x = 11;
-
-print(x);

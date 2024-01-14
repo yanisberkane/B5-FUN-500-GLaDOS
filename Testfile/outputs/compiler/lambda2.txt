@@ -1,9 +1,0 @@
-AST tree:
-[Lambda (AstList [AstSymbol "a"]) (AstList [Define (AstSymbol "b") (Lambda (AstList []) (AstList [AstMathOp (AstSymbol "a") (AstOperator "-") (AstInt 1)]))])]
-(env)
-[]
-(insts)
-[Ret]
-Environment:
-Instructions:
-Ret

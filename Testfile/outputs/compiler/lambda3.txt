@@ -1,9 +1,0 @@
-AST tree:
-[Lambda (AstList [AstSymbol "argOne",AstSymbol "argTwo"]) (AstList [Define (AstSymbol "b") (Lambda (AstList []) (AstList [If (AstList [AstSymbol "argOne",LogicOperator ">",AstSymbol "argTwo"]) (AstList [AstCall (AstSymbol "testCall") (AstList [])]) AstNone]))])]
-(env)
-[]
-(insts)
-[Ret]
-Environment:
-Instructions:
-Ret
