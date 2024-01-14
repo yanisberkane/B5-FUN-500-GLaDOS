@@ -1,8 +1,0 @@
-fact(a) => (
-  if (a == 1) then: (
-    return (1);
-  )
-  return (fact(a - 1) * a);
-);
-
-fact(5);

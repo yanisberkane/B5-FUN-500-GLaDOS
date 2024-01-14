@@ -1,7 +1,0 @@
-
-if (5 == 5 && 3 == 3 || 6 == 6) then: (
-    print(True);
-) else: (
-    print(False);
-)
-print("outside");

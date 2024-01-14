@@ -38,6 +38,7 @@ test-suite glados-test
                      CCSAstParserLogicOperators CCSAstParserMathOperators CCSAstParserSeparator
                      CCSAstParserString CCSAstParserSymbol CCSAstParserList CCSAstParserCall
                      CCSAstParserIf CCSAstParserNamedCall BufferToCCSAstParser ParserTests
+                     ErrorHandlerTests FormatterTests InterpreterTests
   ghc-options: -fhpc
   build-depends:     base >= 4.7 && < 5
                    , glados

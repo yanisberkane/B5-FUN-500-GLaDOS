@@ -1,2 +1,0 @@
-let x = True;
-print(x);

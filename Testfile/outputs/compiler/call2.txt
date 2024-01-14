@@ -1,6 +1,0 @@
-AST tree:
-[Define (AstSymbol "a") (AstInt 5),Define (AstSymbol "b") (AstInt 10),Define (AstSymbol "c") (AstInt 3),NamedCall (AstSymbol "test") (Lambda (AstList [AstSymbol "b",AstSymbol "b",AstSymbol "c"]) (AstList [Define (AstSymbol "d") (AstList [AstMathOp (AstSymbol "a") (AstOperator "+") (AstSymbol "b"),AstOperator "+",AstSymbol "c"]),AstCall (AstSymbol "return") (AstList [AstSymbol "d"])])),AstCall (AstSymbol "test") (AstList [AstSymbol "a",AstSymbol "b",AstSymbol "c"])]
-(env)
-glados: Invalid value
-CallStack (from HasCallStack):
-  error, called at src/glados-main/Interpreter.hs:104:20 in main:Interpreter

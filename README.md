@@ -29,18 +29,50 @@ Then, run `make build` to build GLaDOS binary.
 
 To run a program written in GLaDOS, use the following command:
 
-./glados < your_program.glados
-
-shell
+```
+./glados yourfile.ccs 
+```
 
 ### Examples
 
-(define foo 21)
-(* foo 2)
+If your ccs file contains the following code below:
 
-shell
+```
+let a = 1;
+let b = 2;
 
-Output: `42`
+if (a == b) then:
+(
+  print("a is equal to b");
+)
+print("a isn’t equal to b");
+```
+
+The output should be:
+
+```
+a isn't equal to b
+```
+
+### Another example with a factorial function is CCS:
+
+```
+fact (a) => (
+  if (a == 1) then:
+      return (1);
+  else:
+      return (fact(a - 1) * a);
+);
+
+let result = (fact(5));
+print(result);
+```
+
+The output should be:
+
+```
+120
+```
 
 ## Authors
 

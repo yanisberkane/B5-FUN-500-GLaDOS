@@ -1,7 +1,0 @@
-(argOne argTwo) => (
-    let b = () => (
-        if (argOne > argTwo) then: (
-            testCall();
-        )
-    );
-)

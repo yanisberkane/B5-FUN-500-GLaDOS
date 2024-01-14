@@ -1,9 +1,0 @@
-AST tree:
-[Lambda (AstList [AstSymbol "argOne",AstSymbol "argTwo"]) (AstList [Define (AstSymbol "x") (AstInt 5),Define (AstSymbol "b") (AstInt 4)])]
-(env)
-[]
-(insts)
-[Ret]
-Environment:
-Instructions:
-Ret
