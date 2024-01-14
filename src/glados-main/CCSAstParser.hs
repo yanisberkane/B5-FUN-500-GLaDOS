@@ -87,9 +87,9 @@ parseCall = parseAstSymbol >>= \name ->
 
 parseMathOperation :: Parser Ast
 parseMathOperation = parseMany parseWhiteSpace
-    *> parseOr parseAstList (parseOr parseAstSymbol parseAstInt)  >>= \arg1 -> parseMany parseWhiteSpace
+    *> parseOr parseCall (parseOr parseAstList (parseOr parseAstInt parseAstSymbol))  >>= \arg1 -> parseMany parseWhiteSpace
     *> parseOperator >>= \op -> parseMany parseWhiteSpace
-    *> parseOr parseAstList (parseOr parseAstSymbol parseAstInt) >>= \arg2 -> parseMany parseWhiteSpace
+    *> parseOr parseCall (parseOr parseAstList (parseOr parseAstInt parseAstSymbol)) >>= \arg2 -> parseMany parseWhiteSpace
     Data.Functor.$> AstMathOp arg1 (AstOperator op) arg2
 
 parseCCSAst :: Parser Ast

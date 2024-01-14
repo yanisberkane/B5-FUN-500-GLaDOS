@@ -1,0 +1,9 @@
+fact (a) => (
+    if (a == 1) then:
+        return (1);
+    else:
+        return (fact(a - 1) * a);
+);
+
+let result = (fact(5));
+print(result);
