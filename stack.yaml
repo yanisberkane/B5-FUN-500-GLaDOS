@@ -1,6 +1,7 @@
 resolver: lts-19.5
 packages:
 - .
+extra-dep: true
 extra-deps: []
 flags: {}
 extra-package-dbs: []
