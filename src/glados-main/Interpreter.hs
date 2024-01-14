@@ -1,4 +1,8 @@
-module Interpreter (interpretAST) where
+module Interpreter (
+    -- *Interpreter
+    -- $interpreter
+    interpretAST
+) where
 
 import Types
 import VMTypes
@@ -6,12 +10,16 @@ import Data.Maybe (fromJust)
 import Data.List (elemIndex)
 import ErrorHandler (handleError, stringToErrorType, ErrorType(..))
 
-interpretAST :: [Ast] -> Either ErrorHandler.ErrorType (VMEnv, Insts)
+{- $interpreter
+    This module contains the interpreter used in the Glados project.
+-}
+
+interpretAST :: [Ast] -> Either ErrorHandler.ErrorType (VMEnv, Insts) -- ^ Interpret a list of ASTs
 interpretAST [] = Left (stringToErrorType "Error: The file is empty. x_x")
 interpretAST astList = Right $ let (env, insts) = foldl (flip processAst) ([], []) astList
                                in (env, insts ++ [Ret])
 
-processAst :: Ast -> (VMEnv, Insts) -> (VMEnv, Insts)
+processAst :: Ast -> (VMEnv, Insts) -> (VMEnv, Insts) -- ^ Process an AST
 processAst (Define (AstSymbol sym) value) (env, insts) =
     let valueInsts = interpretMathOpOrValue [] value
     in (env, insts ++ valueInsts ++ [AssignEnvValue sym])
@@ -43,20 +51,20 @@ processAst (If cond thenBranch elseBranch) (env, insts) =
     in (env, insts ++ condInsts ++ jumpOverThen ++ thenInsts ++ skipElseInst ++ elseInsts)
 processAst _ (env, insts) = (env, insts)
 
-replaceSymbolsWithArgs :: [String] -> Insts -> Insts
+replaceSymbolsWithArgs :: [String] -> Insts -> Insts -- ^ Replace symbols with arguments
 replaceSymbolsWithArgs params insts = map replace insts
   where
     replace (PushVMEnv sym) | sym `elem` params = PushArg (fromJust $ elemIndex sym params)
     replace inst = inst
 
-interpretCondition :: Ast -> Insts
+interpretCondition :: Ast -> Insts -- ^ Interpret a condition
 interpretCondition (AstList exprs) = interpretComplexCondition exprs
 interpretCondition _ = error "Invalid condition"
 
-interpretComplexCondition :: [Ast] -> Insts
+interpretComplexCondition :: [Ast] -> Insts -- ^ Interpret a complex condition
 interpretComplexCondition exprs = processConditions exprs [] []
 
-processConditions :: [Ast] -> [Operator] -> Insts -> Insts
+processConditions :: [Ast] -> [Operator] -> Insts -> Insts -- ^ Process conditions
 processConditions [] ops insts = insts ++ concatMap (\op -> [Push (Operator op), CallOp]) ops
 processConditions (LogicOperator op : rest) ops insts =
     let newOp = logicStringToOperator op
@@ -70,7 +78,7 @@ processConditions (left : LogicOperator op : right : rest) ops insts =
        else processConditions rest ops (insts ++ interpretMathOpOrValue [] left ++ interpretMathOpOrValue [] right ++ [Push (Operator newOp), CallOp])
 processConditions exprs _ _ = error $ "Unexpected pattern: " ++ show exprs
 
-logicStringToOperator :: String -> Operator
+logicStringToOperator :: String -> Operator -- ^ Convert a string to a logic operator
 logicStringToOperator "==" = Eq
 logicStringToOperator "<"  = Less
 logicStringToOperator ">"  = Sup
@@ -82,7 +90,7 @@ logicStringToOperator "!=" = NotEq
 logicStringToOperator "!"  = Not
 logicStringToOperator _ = error "Unknown logic operator"
 
-interpretMathOpOrValue :: [String] -> Ast -> Insts
+interpretMathOpOrValue :: [String] -> Ast -> Insts -- ^ Interpret a math operation or a value
 interpretMathOpOrValue params (AstMathOp left op right) =
     let rightInsts = interpretMathOpOrValue params right
         leftInsts = interpretMathOpOrValue params left
@@ -103,18 +111,18 @@ interpretMathOpOrValue _ (AstBool b) = [Push (BoolValue b)]
 interpretMathOpOrValue _ (AstString s) = [Push (StringValue s)]
 interpretMathOpOrValue _ ast = error $ "Invalid value for AST node: " ++ show ast
 
-astOperatorToString :: Ast -> String
+astOperatorToString :: Ast -> String -- ^ Convert an Ast operator to a string
 astOperatorToString (AstOperator op) = op
 astOperatorToString _ = error "Expected an operator"
 
-stringToOperator :: String -> Operator
+stringToOperator :: String -> Operator -- ^ Convert a string to an operator
 stringToOperator "+" = Add
 stringToOperator "-" = Sub
 stringToOperator "*" = Mul
 stringToOperator "/" = Div
 stringToOperator _ = error "Unknown operator"
 
-interpretValue :: Ast -> Value
+interpretValue :: Ast -> Value -- ^ Interpret a value
 interpretValue (AstInt i) = IntValue i
 interpretValue (AstBool b) = BoolValue b
 interpretValue (AstString s) = StringValue s

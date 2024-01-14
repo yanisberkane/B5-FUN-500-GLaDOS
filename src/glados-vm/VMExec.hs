@@ -1,8 +1,15 @@
 module VMExec where
 
+-- *VMExec
+-- $vmexec
+
 import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
 
-execute :: Args -> VMEnv -> VMState -> Either String VMState
+{- $vmexec
+    This module contains the executor used in the Glados project.
+-}
+
+execute :: Args -> VMEnv -> VMState -> Either String VMState -- ^ Executes a list of instructions
 execute args env (value : stack, PushToOutput : insts, tmpInsts, oldArgs, output) = execute args env (stack, insts, tmpInsts, oldArgs, output ++ [value])
 execute args env (ListValue xs : stack, OperateOnList operator : insts, tmpInsts, oldArgs, output) =
     case executeListOperation operator xs of
@@ -44,7 +51,7 @@ execute args env (stack, [], insts : tmpRest, currentOldArgs : oldArgs, output) 
 execute args env (stack, Ret : _, [], oldArgs, output) = Right (stack, [], [], [], output)
 execute args env state@(stack, insts, tmpInsts, oldArgs, output) = Right state
 
-executeOperation :: Operator -> Stack -> Either String Stack
+executeOperation :: Operator -> Stack -> Either String Stack -- ^ Execute a mathematical and logical operation
 executeOperation Add (IntValue a : IntValue b : stack) = Right (IntValue (a + b) : stack)
 executeOperation Add _ = Left "Error: Add needs two arguments"
 executeOperation Sub (IntValue a : IntValue b : stack) = Right (IntValue (a - b) : stack)
@@ -83,7 +90,7 @@ executeOperation NotEq (IntValue a : IntValue b : stack) = Right (BoolValue (a /
 executeOperation NotEq (BoolValue a : BoolValue b : stack) = Right (BoolValue (a /= b) : stack)
 executeOperation NotEq _ = Left "Error: NotEq needs two arguments of the same type"
 
-executeListOperation :: Operator -> [Value] -> Either String Value
+executeListOperation :: Operator -> [Value] -> Either String Value -- ^ Execute a list of mathematical and logical operations
 executeListOperation Add xs = Right $ IntValue $ sum [x | IntValue x <- xs]
 executeListOperation Sub (x:xs) = Right $ IntValue $ foldl (-) (toInt x) [toInt x' | x' <- xs]
     where toInt (IntValue x) = x

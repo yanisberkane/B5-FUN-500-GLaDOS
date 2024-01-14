@@ -1,8 +1,17 @@
-module Formatter (formatEnv, formatInsts) where
+module Formatter (
+    -- *Formatter
+    -- $formatter
+    formatEnv,
+    formatInsts
+) where
 
 import VMTypes (Value(..), Instruction(..), VMEnv, Insts)
 
-formatEnv :: VMEnv -> String
+{- $formatter
+    This module contains the formatter used in the Glados interpreter.
+-}
+
+formatEnv :: VMEnv -> String -- ^ Format an environment to a string
 formatEnv env = unlines $ map formatBinding env
   where
     formatBinding (var, val) = var ++ " = " ++ showValue val
@@ -14,5 +23,5 @@ formatEnv env = unlines $ map formatBinding env
     showValue (ListValue vals) = "LIST " ++ show vals
 
 
-formatInsts :: Insts -> String
+formatInsts :: Insts -> String -- ^ Format a list of instructions to a string
 formatInsts insts = unlines $ map show insts

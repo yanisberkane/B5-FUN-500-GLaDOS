@@ -1,8 +1,16 @@
 module VMBinaryFileProcess where
 
+-- *VMBinaryFileProcess
+-- $vmbinaryfileprocess
+
 import Data.Binary (Binary, put, get, encodeFile, decodeFile, Get)
 import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
 
+{- $vmbinaryfileprocess
+    This module contains the binary file processor used in the Glados project.
+-}
+
+-- |Instances of Binary for Value
 instance Binary Value where
     put (IntValue i) = put (0 :: Int) >> put i
     put (BoolValue b) = put (1 :: Int) >> put b
@@ -18,6 +26,7 @@ instance Binary Value where
         4 -> get >>= \s -> return $ StringValue s
         5 -> get >>= \l -> return $ ListValue l
 
+-- |Instances of Binary for Operator
 instance Binary Operator where
     put Add = put (0 :: Int)
     put Sub = put (1 :: Int)
@@ -51,6 +60,7 @@ instance Binary Operator where
         13 -> return SupEq
         14 -> return NotEq
 
+-- |Instances of Binary for Instruction
 instance Binary Instruction where
     put (Push v) = put (0 :: Int) >> put v
     put (Call i) = put (1 :: Int) >> put i
@@ -78,8 +88,8 @@ instance Binary Instruction where
         10 -> get >>= \i -> return $ Jump i
         11 -> get >>= \i -> return $ JumpIfTrue i
 
-writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO ()
+writeStateToFile :: FilePath -> ([(String, Value)], Insts) -> IO () -- ^ Write the environment and the instructions into a file.
 writeStateToFile filename envinsts =  encodeFile filename envinsts
 
-readStateFromFile :: FilePath -> IO ([(String, Value)], Insts)
+readStateFromFile :: FilePath -> IO ([(String, Value)], Insts) -- ^ Read the environment and the instructions from a file.
 readStateFromFile filename = decodeFile filename
