@@ -10,6 +10,7 @@ executable glados
                        filepath,
                        containers,
                        binary
+  build-tools:         haddock
 
 executable glados-vm
   hs-source-dirs:      src/glados-vm src/glados-main
