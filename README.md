@@ -12,9 +12,10 @@ Our language is called CCS (Confused Code Syntax) and it produces DZ (Dazed) com
 
 - **Custom Language Design**: Implementing a language from scratch, including parsing, syntax, and semantics.
 - **Build System**: Compilation via Makefile with `re`, `clean`, and `fclean` rules. Stack is recommended for building.
-- **Testing**: Comprehensive unit and integration tests, with continuous integration and delivery setups.
+- **Testing**: Comprehensive unit and integration tests, with continuous integration and delivery setups. `make test`
 - **Error Handling**: Robust error handling with meaningful output.
 - **Functional Paradigms**: Emphasis on functional programming concepts like lambda expressions, closures, and immutable data.
+- Documentation for the source code: `make doc`
 
 ## Getting Started
 
