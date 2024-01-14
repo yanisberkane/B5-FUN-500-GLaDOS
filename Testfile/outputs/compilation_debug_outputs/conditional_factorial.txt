@@ -1,0 +1,33 @@
+Environment:
+fact = FUNCTION [PushArg 0,Push (IntValue 1),Push (Operator Eq),CallOp,JumpIfFalse 2,Push (IntValue 1),Jump 9,Push (IntValue 1),PushArg 0,Push (Operator Sub),CallOp,PushVMEnv "fact",Call 1,PushArg 0,Push (Operator Mul),CallOp,Ret]
+
+Instructions:
+Push (BoolValue True)
+AssignEnvValue "isTrue"
+Push (IntValue 5)
+PushVMEnv "fact"
+Call 1
+Push (IntValue 5)
+PushVMEnv "fact"
+Call 1
+Push (Operator Eq)
+CallOp
+PushVMEnv "isTrue"
+Push (BoolValue False)
+Push (Operator Eq)
+CallOp
+Push (Operator And)
+CallOp
+JumpIfFalse 3
+Push (StringValue "hello")
+PushToOutput
+Jump 2
+Push (StringValue "world")
+PushToOutput
+Push (IntValue 5)
+PushVMEnv "fact"
+Call 1
+AssignEnvValue "result"
+PushVMEnv "result"
+PushToOutput
+Ret

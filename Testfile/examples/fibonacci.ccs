@@ -1,0 +1,12 @@
+
+fibo(n) => (
+    if (n <= 1) then:
+        return (n);
+    else:
+        return(fibo(n-1); + fibo(n-2););
+);
+
+print("Fibonacci numbers for 5:");
+print(fibo(5));
+print("Fibonacci numbers for 10:");
+print(fibo(10));

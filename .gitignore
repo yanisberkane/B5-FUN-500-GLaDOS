@@ -8,3 +8,4 @@ glados-test
 Main.mix
 CCSToDz
 *.debug
+.DS_Store

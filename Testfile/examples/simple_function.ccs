@@ -1,0 +1,14 @@
+
+test (a) => (
+    if (a == 1) then: (
+        print("a is 1");
+        return (2);
+    )
+    else: (
+        print("a is not 1");
+        return (3);
+    )
+    print("end of test");
+);
+
+print(test(1));

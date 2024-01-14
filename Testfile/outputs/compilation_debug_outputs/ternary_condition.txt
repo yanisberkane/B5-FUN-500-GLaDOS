@@ -1,0 +1,20 @@
+Environment:
+
+Instructions:
+Push (IntValue 1)
+AssignEnvValue "a"
+Push (IntValue 2)
+AssignEnvValue "b"
+PushVMEnv "a"
+PushVMEnv "b"
+Push (Operator Eq)
+CallOp
+JumpIfFalse 3
+Push (IntValue 10)
+AssignEnvValue "x"
+Jump 2
+Push (IntValue 11)
+AssignEnvValue "x"
+PushVMEnv "x"
+PushToOutput
+Ret

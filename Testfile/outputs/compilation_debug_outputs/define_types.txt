@@ -1,0 +1,20 @@
+Environment:
+
+Instructions:
+Push (IntValue 42)
+AssignEnvValue "a"
+Push (IntValue (-42))
+AssignEnvValue "aneg"
+Push (StringValue "Hello World!")
+AssignEnvValue "b"
+Push (BoolValue True)
+AssignEnvValue "c"
+PushVMEnv "a"
+PushToOutput
+PushVMEnv "aneg"
+PushToOutput
+PushVMEnv "b"
+PushToOutput
+PushVMEnv "c"
+PushToOutput
+Ret
