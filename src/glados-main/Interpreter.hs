@@ -17,6 +17,17 @@ processAst (Assign (AstSymbol sym) value) (env, insts) =
 processAst (AstCall (AstSymbol "print") (AstList args)) (env, insts) =
     let argsInsts = concatMap interpretMathOpOrValue args
     in (env, insts ++ argsInsts ++ [PushToOutput])
+processAst (AstCall (AstSymbol "return") (AstList [returnValue])) (env, insts) =
+    let returnInsts = interpretMathOpOrValue returnValue
+    in (env, insts ++ returnInsts)
+processAst (AstCall (AstSymbol fName) (AstList args)) (env, insts) =
+    let argsInsts = concatMap interpretMathOpOrValue args
+    in (env, insts ++ argsInsts ++ [PushVMEnv fName, Call (length args)])
+processAst (NamedCall (AstSymbol fName) (Lambda (AstList params) (AstList body))) (env, insts) =
+    let paramNames = map (\(AstSymbol s) -> s) params
+        bodyInsts = concatMap (\ast -> snd (processAst ast (env, insts))) body
+        funcInsts = concat (zipWith (\name idx -> [PushArg idx, AssignEnvValue name]) paramNames [0..]) ++ bodyInsts ++ [Ret]
+    in ((fName, Function funcInsts):env, insts)
 processAst (If cond thenBranch elseBranch) (env, insts) =
     let condInsts = interpretCondition cond
         processBranch (AstList stmts) = concatMap (snd . (`processAst` (env, []))) stmts
@@ -62,22 +73,21 @@ logicStringToOperator "!"  = Not
 logicStringToOperator _ = error "Unknown logic operator"
 
 interpretMathOpOrValue :: Ast -> Insts
-interpretMathOpOrValue (AstMathOp left op right) = interpretMathOp left op right
+interpretMathOpOrValue (AstMathOp left op right) =
+    let leftInsts = interpretMathOpOrValue left
+        rightInsts = interpretMathOpOrValue right
+        opInst = [Push (Operator (stringToOperator (astOperatorToString op))), CallOp]
+    in leftInsts ++ rightInsts ++ opInst
 interpretMathOpOrValue (AstSymbol sym) = [PushVMEnv sym]
+interpretMathOpOrValue (AstCall (AstSymbol fName) (AstList args)) =
+    let argsInsts = concatMap interpretMathOpOrValue args
+    in argsInsts ++ [PushVMEnv fName, Call (length args)]
 interpretMathOpOrValue (AstList lst) = concatMap interpretMathOpOrValue lst
 interpretMathOpOrValue ast = [Push (interpretValue ast)]
 
-interpretMathOp :: Ast -> Ast -> Ast -> Insts
-interpretMathOp left (AstOperator op) right =
-    interpretMathOpOrValue left ++ interpretMathOpOrValue right ++ [Push (Operator (stringToOperator op)), CallOp]
-interpretMathOp _ _ _ = error "Invalid MathOp structure"
-
-interpretValue :: Ast -> Value
-interpretValue (AstInt i) = IntValue i
-interpretValue (AstBool b) = BoolValue b
-interpretValue (AstString s) = StringValue s
-interpretValue (AstSymbol sym) = error $ "Unexpected symbol in direct value context: " ++ sym
-interpretValue _ = error "Invalid value"
+astOperatorToString :: Ast -> String
+astOperatorToString (AstOperator op) = op
+astOperatorToString _ = error "Expected an operator"
 
 stringToOperator :: String -> Operator
 stringToOperator "+" = Add
@@ -85,3 +95,10 @@ stringToOperator "-" = Sub
 stringToOperator "*" = Mul
 stringToOperator "/" = Div
 stringToOperator _ = error "Unknown operator"
+
+interpretValue :: Ast -> Value
+interpretValue (AstInt i) = IntValue i
+interpretValue (AstBool b) = BoolValue b
+interpretValue (AstString s) = StringValue s
+interpretValue (AstSymbol sym) = error $ "Unexpected symbol in direct value context: " ++ sym
+interpretValue _ = error "Invalid value"
