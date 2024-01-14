@@ -16,6 +16,7 @@ build: clean
 test: clean
 	stack build --copy-bins --local-bin-path .
 	stack test --coverage
+	./functional_test.sh
 
 clean:
 	stack clean
