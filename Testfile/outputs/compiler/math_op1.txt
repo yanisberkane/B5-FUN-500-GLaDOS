@@ -1,0 +1,8 @@
+AST tree:
+[Define (AstSymbol "x") (AstList [AstMathOp (AstInt 5) (AstOperator "+") (AstList [AstMathOp (AstInt 10) (AstOperator "-") (AstInt 12)]),AstOperator "+",AstInt 10])]
+(env)
+[]
+(insts)
+glados: Invalid value
+CallStack (from HasCallStack):
+  error, called at src/glados-main/Interpreter.hs:104:20 in main:Interpreter

@@ -1,0 +1,17 @@
+AST tree:
+[Define (AstSymbol "x") (AstMathOp (AstInt 5) (AstOperator "+") (AstList [AstMathOp (AstInt 10) (AstOperator "-") (AstInt 12)]))]
+(env)
+[]
+(insts)
+[Push (IntValue 5),Push (IntValue 10),Push (IntValue 12),Push (Operator Sub),CallOp,Push (Operator Add),CallOp,AssignEnvValue "x",Ret]
+Environment:
+Instructions:
+Push (IntValue 5)
+Push (IntValue 10)
+Push (IntValue 12)
+Push (Operator Sub)
+CallOp
+Push (Operator Add)
+CallOp
+AssignEnvValue "x"
+Ret

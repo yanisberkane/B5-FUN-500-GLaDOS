@@ -28,6 +28,9 @@ import CCSAstParserNamedCall
 import BufferToCCSAstParser
 import ParserTests
 import ParserTests (testParseAndFail2)
+import ErrorHandlerTests
+import FormatterTests
+import InterpreterTests
 
 -- data Ast = AstInt Int
 --     7          | AstBool Bool
@@ -1272,7 +1275,21 @@ tests = TestList [
                     TestLabel "testShowAstBool" testShowAstBool,
                     TestLabel "testShowAstSymbol" testShowAstSymbol,
                     TestLabel "testShowAstMathOp" testShowAstMathOp,
-                    TestLabel "testShowAstList" testShowAstList
+                    TestLabel "testShowAstList" testShowAstList,
+                    -- Error handling
+                    TestLabel "testFormatError" testFormatError,
+                    TestLabel "testFormatError2" testFormatError2,
+                    -- Formatter
+                    TestLabel "testFormatEnv" testFormatEnv,
+                    TestLabel "testFormatEnvOperatorFunctionList" testFormatEnvOperatorFunctionList,
+                    TestLabel "testFormatInsts" testFormatInsts
+                    -- Interpreter
+                    -- TestLabel "testinterpretAST" testinterpretAST
+                    -- TestLabel "testInterpretValueInt" testInterpretValueInt,
+                    -- TestLabel "testInterpretValueBool" testInterpretValueBool,
+                    -- TestLabel "testInterpretValueString" testInterpretValueString,
+                    -- TestLabel "testInterpretValueSymbol" testInterpretValueSymbol,
+                    -- TestLabel "testInterpretValueError" testInterpretValueError
                 ]
 
 main :: IO Counts

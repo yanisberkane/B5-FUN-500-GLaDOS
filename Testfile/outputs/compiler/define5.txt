@@ -1,0 +1,9 @@
+AST tree:
+[AstSymbol "let",AstSymbol "x"]
+(env)
+[]
+(insts)
+[Ret]
+Environment:
+Instructions:
+Ret

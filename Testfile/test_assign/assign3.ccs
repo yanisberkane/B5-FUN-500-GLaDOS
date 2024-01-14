@@ -1,2 +1,3 @@
 let b = True;
 b = False;
+print(b);
