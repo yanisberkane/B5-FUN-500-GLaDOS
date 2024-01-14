@@ -8,3 +8,4 @@ glados-test
 Main.mix
 *.dz
 CCSToDz
+*.debug
