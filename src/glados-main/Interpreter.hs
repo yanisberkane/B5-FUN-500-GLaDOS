@@ -97,6 +97,9 @@ interpretMathOpOrValue params (AstCall (AstSymbol fName) (AstList args)) =
     in argsInsts ++ [PushVMEnv fName, Call (length args)]
 interpretMathOpOrValue params (AstList lst) = concatMap (interpretMathOpOrValue params) lst
 interpretMathOpOrValue _ (AstInt i) = [Push (IntValue i)]
+interpretMathOpOrValue _ (AstBool b) = [Push (BoolValue b)]
+interpretMathOpOrValue _ (AstString s) = [Push (StringValue s)]
+interpretMathOpOrValue _ ast = error $ "Invalid value for AST node: " ++ show ast
 
 astOperatorToString :: Ast -> String
 astOperatorToString (AstOperator op) = op

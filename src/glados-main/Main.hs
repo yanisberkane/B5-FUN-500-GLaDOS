@@ -31,10 +31,11 @@ processInput filename input debugMode =
     case bufferToCCSAst input of
         Just ast ->
             let (env, insts) = interpretAST ast
+                outputFilename = takeBaseName filename <.> "dz"
             in putStrLn (filename ++ " was compiled successfully. ^_^") >>
                (if debugMode
                 then writeDebugInfo filename (env, insts)
-                else writeEnvAndInstsToFile filename (env, insts))
+                else writeEnvAndInstsToFile outputFilename (env, insts))
         Nothing -> handleError $ ParsingError "Failed to parse .ccs file."
 
 writeDebugInfo :: FilePath -> (VMEnv, Insts) -> IO ()
