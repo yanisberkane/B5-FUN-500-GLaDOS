@@ -3,3 +3,6 @@ AST tree:
 (env)
 []
 (insts)
+glados: Invalid value
+CallStack (from HasCallStack):
+  error, called at src/glados-main/Interpreter.hs:104:20 in main:Interpreter

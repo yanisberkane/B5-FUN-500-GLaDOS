@@ -1,0 +1,9 @@
+AST tree:
+[Lambda (AstList [AstSymbol "a"]) (AstList [Define (AstSymbol "myVar") (AstBool True)])]
+(env)
+[]
+(insts)
+[Ret]
+Environment:
+Instructions:
+Ret
