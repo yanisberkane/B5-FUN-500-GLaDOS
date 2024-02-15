@@ -1,0 +1,66 @@
+Environment:
+
+Instructions:
+Push (IntValue 2)
+AssignEnvValue "a"
+PushVMEnv "a"
+Push (IntValue 1)
+Push (Operator Eq)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a equals 1")
+PushToOutput
+Jump 2
+Push (StringValue "a does not equal 1")
+PushToOutput
+PushVMEnv "a"
+Push (IntValue 1)
+Push (Operator Sup)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a is greater than 1")
+PushToOutput
+Jump 2
+Push (StringValue "a is not greater than 1")
+PushToOutput
+PushVMEnv "a"
+Push (IntValue 1)
+Push (Operator Less)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a is less than 1")
+PushToOutput
+Jump 2
+Push (StringValue "a is not less than 1")
+PushToOutput
+PushVMEnv "a"
+Push (IntValue 1)
+Push (Operator SupEq)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a is greater than or equal to 1")
+PushToOutput
+Jump 2
+Push (StringValue "a is not greater than or equal to 1")
+PushToOutput
+PushVMEnv "a"
+Push (IntValue 1)
+Push (Operator LessEq)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a is less than or equal to 1")
+PushToOutput
+Jump 2
+Push (StringValue "a is not less than or equal to 1")
+PushToOutput
+PushVMEnv "a"
+Push (IntValue 1)
+Push (Operator NotEq)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a does not equal 1")
+PushToOutput
+Jump 2
+Push (StringValue "a equals 1")
+PushToOutput
+Ret

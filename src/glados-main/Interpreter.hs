@@ -97,6 +97,8 @@ interpretMathOpOrValue params (AstMathOp left op right) =
         opInst = [Push (Operator (stringToOperator (astOperatorToString op))), CallOp]
     in case op of
         AstOperator "-" -> rightInsts ++ leftInsts ++ opInst
+        AstOperator "/" -> rightInsts ++ leftInsts ++ opInst
+        AstOperator "%" -> rightInsts ++ leftInsts ++ opInst
         _ -> leftInsts ++ rightInsts ++ opInst
 interpretMathOpOrValue params (AstSymbol sym) =
     if sym `elem` params
@@ -120,6 +122,7 @@ stringToOperator "+" = Add
 stringToOperator "-" = Sub
 stringToOperator "*" = Mul
 stringToOperator "/" = Div
+stringToOperator "%" = Mod
 stringToOperator _ = error "Unknown operator"
 
 interpretValue :: Ast -> Value -- ^ Interpret a value

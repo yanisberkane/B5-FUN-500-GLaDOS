@@ -1,0 +1,56 @@
+Environment:
+
+Instructions:
+Push (IntValue 5)
+AssignEnvValue "a"
+Push (IntValue 5)
+AssignEnvValue "b"
+PushVMEnv "a"
+PushVMEnv "b"
+Push (Operator Eq)
+CallOp
+JumpIfFalse 13
+Push (IntValue 5)
+AssignEnvValue "x"
+PushVMEnv "a"
+PushVMEnv "x"
+Push (Operator Eq)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a is greater")
+PushToOutput
+Jump 2
+Push (StringValue "a is smaller")
+PushToOutput
+Jump 12
+Push (IntValue 5)
+AssignEnvValue "x"
+PushVMEnv "a"
+PushVMEnv "x"
+Push (Operator Eq)
+CallOp
+JumpIfFalse 3
+Push (StringValue "x is greater")
+PushToOutput
+Jump 2
+Push (StringValue "x is smaller")
+PushToOutput
+Push (StringValue "outside")
+PushToOutput
+PushVMEnv "a"
+PushVMEnv "b"
+Push (Operator Eq)
+CallOp
+PushVMEnv "a"
+Push (IntValue 5)
+Push (Operator Eq)
+CallOp
+Push (Operator And)
+CallOp
+JumpIfFalse 3
+Push (StringValue "a is 5")
+PushToOutput
+Jump 2
+Push (StringValue "a is not 5")
+PushToOutput
+Ret

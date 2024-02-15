@@ -1,0 +1,16 @@
+var isTrue = True;
+
+fact (a) => (
+    if (a == 1) then:
+        return (1);
+    else:
+        return (fact(a - 1) * a);
+);
+
+if (fact(5) == fact(5) && isTrue == False) then:
+    print("hello");
+else:
+    print("world");
+
+let result = (fact(5));
+print(result);

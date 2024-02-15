@@ -1,0 +1,9 @@
+let a = 42;
+let aneg = -42;
+let b = "Hello World!";
+let c = True;
+
+print(a);
+print(aneg);
+print(b);
+print(c);

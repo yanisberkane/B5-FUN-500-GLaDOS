@@ -1,0 +1,9 @@
+Environment:
+test = FUNCTION [PushArg 0,Push (IntValue 1),Push (Operator Eq),CallOp,JumpIfFalse 4,Push (StringValue "a is 1"),PushToOutput,Push (IntValue 2),Jump 3,Push (StringValue "a is not 1"),PushToOutput,Push (IntValue 3),Push (StringValue "end of test"),PushToOutput,Ret]
+
+Instructions:
+Push (IntValue 1)
+PushVMEnv "test"
+Call 1
+PushToOutput
+Ret

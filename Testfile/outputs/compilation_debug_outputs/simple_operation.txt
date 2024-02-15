@@ -1,0 +1,35 @@
+Environment:
+
+Instructions:
+Push (IntValue 2)
+AssignEnvValue "a"
+Push (IntValue 3)
+AssignEnvValue "b"
+Push (IntValue 4)
+AssignEnvValue "c"
+PushVMEnv "a"
+PushVMEnv "b"
+Push (Operator Add)
+CallOp
+PushToOutput
+PushVMEnv "b"
+PushVMEnv "a"
+Push (Operator Sub)
+CallOp
+PushToOutput
+PushVMEnv "a"
+PushVMEnv "b"
+Push (Operator Mul)
+CallOp
+PushToOutput
+PushVMEnv "a"
+PushVMEnv "c"
+Push (Operator Div)
+CallOp
+PushToOutput
+PushVMEnv "b"
+PushVMEnv "c"
+Push (Operator Mod)
+CallOp
+PushToOutput
+Ret

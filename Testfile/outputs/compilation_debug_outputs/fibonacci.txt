@@ -1,0 +1,17 @@
+Environment:
+fibo = FUNCTION [PushArg 0,Push (IntValue 1),Push (Operator LessEq),CallOp,JumpIfFalse 2,PushArg 0,Jump 14,Push (IntValue 1),PushArg 0,Push (Operator Sub),CallOp,PushVMEnv "fibo",Call 1,Push (IntValue 2),PushArg 0,Push (Operator Sub),CallOp,PushVMEnv "fibo",Call 1,Push (Operator Add),CallOp,Ret]
+
+Instructions:
+Push (StringValue "Fibonacci numbers for 5:")
+PushToOutput
+Push (IntValue 5)
+PushVMEnv "fibo"
+Call 1
+PushToOutput
+Push (StringValue "Fibonacci numbers for 10:")
+PushToOutput
+Push (IntValue 10)
+PushVMEnv "fibo"
+Call 1
+PushToOutput
+Ret

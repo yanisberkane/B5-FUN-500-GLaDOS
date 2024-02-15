@@ -30,6 +30,7 @@ perform_test() {
 
     # Run the compiler on the input file with -d flag
     $BINARY_PATH -d "$input_file" > /dev/null
+    $BINARY_PATH "$input_file" > /dev/null
     actual_output=$(echo "$input_file" | sed 's/.*\///' | sed 's/\..*//' | sed 's/$/.debug/')
     actual_output=$(cat "$actual_output")
 
@@ -49,7 +50,11 @@ perform_test() {
 
 echo "COMPILATION TESTS STARTING"
 echo "-----------------------"
-perform_test "Testfile/examples/factorial.ccs" "Testfile/outputs/compilation_debug_outputs/factorial.txt"
+
+for file in Testfile/examples/*.ccs; do
+    perform_test "$file" "Testfile/outputs/compilation_debug_outputs/$(basename "$file" .ccs).txt"
+done
+
 echo "-----------------------"
 if [ "$EXIT_CODE" = 84 ]; then
     echo -e "\n${RED}COMPILER TESTS FAILED\n${NC}"
@@ -59,12 +64,16 @@ else
 fi
 echo "VM TESTS STARTING"
 echo "-----------------------"
-perform_test "Testfile/outputs/compiled/factorial.dz" "Testfile/outputs/vm_outputs/factorial.txt" "vm"
+
+for file in ./*.dz; do
+    perform_test "$file" "Testfile/outputs/vm_outputs/$(basename "$file" .dz).txt" "vm"
+done
+
 echo "-----------------------"
 
 # check if .debug files existed
-if [ -f *.debug ]; then
-    rm *.debug
-fi
+rm -f *.debug
+
+rm -f *.dz
 
 exit $EXIT_CODE
