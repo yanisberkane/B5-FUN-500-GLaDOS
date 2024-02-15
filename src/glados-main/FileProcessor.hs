@@ -1,3 +1,9 @@
+{-
+-- EPITECH PROJECT, 2024
+-- B5-FUN-500-GLaDOS-Mirror [WSL: Ubuntu]
+-- File description:
+-- FileProcessor
+-}
 module FileProcessor (
     -- *FileProcessor
     -- $fileprocessor
@@ -12,4 +18,5 @@ import VMTypes (VMEnv, Insts)
 -}
 
 writeEnvAndInstsToFile :: FilePath -> (VMEnv, Insts) -> IO () -- ^ Write the environment and the instructions into a file.
-writeEnvAndInstsToFile filename (env, insts) = writeStateToFile filename (env, insts)
+writeEnvAndInstsToFile filename (env, insts) =
+    writeStateToFile filename (env, insts)

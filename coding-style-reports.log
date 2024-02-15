@@ -1,0 +1,8 @@
+./src/glados-vm/VMExec.hs:24: MINOR:H-F3 # too long line
+./src/glados-vm/VMMain.hs:19: MINOR:H-F4 # too long function
+./src/glados-main/Interpreter.hs:53: MINOR:H-F4 # too long function
+./src/glados-main/CCSAstParser.hs:51: MINOR:H-F3 # too long line
+./src/glados-main/CCSAstParser.hs:107: MINOR:H-F4 # too long function
+./src/glados-main/CCSAstParser.hs:150: MINOR:H-F4 # too long function
+./src/glados-main/Main.hs:52: MAJOR:H-P1 # ./src/glados-main/Main.hs is not parsable
+./src/glados-main/Parser.hs contains forbidden extensions

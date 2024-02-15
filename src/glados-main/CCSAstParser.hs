@@ -1,3 +1,9 @@
+{-
+-- EPITECH PROJECT, 2024
+-- B5-FUN-500-GLaDOS-Mirror [WSL: Ubuntu]
+-- File description:
+-- CCSAstParser
+-}
 module CCSAstParser (
     -- *CCS to Ast representation
     -- $ccsastparser
@@ -80,27 +86,34 @@ parseAssign = parseAstSymbol >>= \varName ->
 
 parseAstList :: Parser Ast -- ^ parseAstList parses an AstList and returns it.
 parseAstList = parseMany parseWhiteSpace *> parseChar '('
-    *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar ')'
+    *> parseMany parseCCSAst >>=
+        \args -> parseMany parseWhiteSpace <* parseChar ')'
     Data.Functor.$> AstList args
 
 parseBody :: Parser Ast -- ^ parseBody parses an AstList and returns it.
 parseBody = parseMany parseWhiteSpace *> parseChar '{'
-    *> parseMany parseCCSAst >>= \args -> parseMany parseWhiteSpace <* parseChar '}'
+    *> parseMany parseCCSAst >>=
+        \args -> parseMany parseWhiteSpace <* parseChar '}'
     Data.Functor.$> AstList args
 
 parseArgList :: Parser Ast -- ^ parseArgList parses an AstList and returns it.
 parseArgList = parseMany parseWhiteSpace *> parseChar '('
-    *> parseMany (parseOr (parseCCSAst <* parseSome (parseChar ',')) parseCCSAst)
+    *> parseMany
+        (parseOr (parseCCSAst <* parseSome (parseChar ',')) parseCCSAst)
     >>= \args -> parseMany parseWhiteSpace <* parseChar ')'
     Data.Functor.$> AstList args
 
 parseIf :: Parser Ast -- ^ parseIf parses an If and returns it.
-parseIf = parseOr (parseMany parseWhiteSpace *> parseString "if" *> parseAstList >>=
-    \cond -> parseMany parseWhiteSpace *> parseString "then:" *> parseCCSAst >>= \thenExpr ->
+parseIf = parseOr (parseMany parseWhiteSpace *>
+    parseString "if" *> parseAstList >>=
+    \cond -> parseMany parseWhiteSpace *>
+        parseString "then:" *> parseCCSAst >>= \thenExpr ->
     parseMany parseWhiteSpace *> parseOr
-    (parseString "else:" *> parseCCSAst >>= \elseExpr -> parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
+    (parseString "else:" *> parseCCSAst >>= \elseExpr ->
+        parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
     (parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr AstNone))
-    (parseAstList >>= \cond -> parseMany parseWhiteSpace *> parseChar '?' *> parseCCSAst >>= \thenExpr ->
+    (parseAstList >>= \cond -> parseMany parseWhiteSpace *>
+        parseChar '?' *> parseCCSAst >>= \thenExpr ->
     parseMany parseWhiteSpace *> parseChar ':' *> parseCCSAst >>= \elseExpr ->
     parseMany parseWhiteSpace Data.Functor.$> If cond thenExpr elseExpr)
 
@@ -123,9 +136,13 @@ parseCall = parseAstSymbol >>= \name ->
 
 parseMathOperation :: Parser Ast -- ^ parseMathOperation parses a AstMathOp and returns it.
 parseMathOperation = parseMany parseWhiteSpace
-    *> parseOr parseCall (parseOr parseAstList (parseOr parseAstInt parseAstSymbol))  >>= \arg1 -> parseMany parseWhiteSpace
+    *> parseOr parseCall (parseOr parseAstList
+        (parseOr parseAstInt parseAstSymbol)) >>=
+            \arg1 -> parseMany parseWhiteSpace
     *> parseOperator >>= \op -> parseMany parseWhiteSpace
-    *> parseOr parseCall (parseOr parseAstList (parseOr parseAstInt parseAstSymbol)) >>= \arg2 -> parseMany parseWhiteSpace
+    *> parseOr parseCall (parseOr parseAstList
+        (parseOr parseAstInt parseAstSymbol)) >>=
+            \arg2 -> parseMany parseWhiteSpace
     Data.Functor.$> AstMathOp arg1 (AstOperator op) arg2
 
 

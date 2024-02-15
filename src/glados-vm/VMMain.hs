@@ -1,7 +1,13 @@
-
+{-
+-- EPITECH PROJECT, 2024
+-- B5-FUN-500-GLaDOS-Mirror [WSL: Ubuntu]
+-- File description:
+-- VMMain
+-}
 import System.IO
 import System.Environment (getArgs)
-import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args, VMState, VMEnv, safeIndex)
+import VMTypes (Value(..), Operator(..), Instruction(..), Stack, Insts, Args,
+    VMState, VMEnv, safeIndex)
 import VMExec (execute)
 import VMBinaryFileProcess (readStateFromFile)
 import System.FilePath (takeExtension, (<.>))
@@ -11,10 +17,16 @@ import ErrorHandler (handleError, ErrorType(ParsingError, InvalidArgumentError))
 main :: IO ()
 main = getArgs >>= \args ->
     case args of
-        [filename] | takeExtension filename == ".dz" -> processFile filename Nothing
-                   | otherwise -> handleError $ ParsingError "Invalid file extension. Expected '.dz' >:C."
-        [filename, "-d"] | takeExtension filename == ".dz" -> processFile filename (Just "-d")
-                   | otherwise -> handleError $ ParsingError "Invalid file extension. Expected '.dz' >:C."
+        [filename] | takeExtension filename == ".dz" ->
+            processFile filename Nothing
+                   | otherwise ->
+                    handleError $
+                    ParsingError "Invalid file extension. Expected '.dz' >:C."
+        [filename, "-d"] | takeExtension filename == ".dz" ->
+            processFile filename (Just "-d")
+                   | otherwise ->
+                    handleError $
+                    ParsingError "Invalid file extension. Expected '.dz' >:C."
         _ -> handleError $ InvalidArgumentError "File was not provided."
 
 debug :: Either String VMState -> IO ()
@@ -47,4 +59,5 @@ formatStack (StringValue s:xs) = "\"" ++ s ++ "\"" ++ "\n" ++ formatStack xs
 formatStack (ListValue l:xs) = show l ++ "\n" ++ formatStack xs
 
 handleReadError :: IOException -> IO ()
-handleReadError e = handleError $ InvalidArgumentError ("File error: " ++ show e)
+handleReadError e =
+    handleError $ InvalidArgumentError ("File error: " ++ show e)

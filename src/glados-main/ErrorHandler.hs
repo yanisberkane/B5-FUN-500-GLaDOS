@@ -1,3 +1,9 @@
+{-
+-- EPITECH PROJECT, 2024
+-- B5-FUN-500-GLaDOS-Mirror [WSL: Ubuntu]
+-- File description:
+-- ErrorHandler
+-}
 module ErrorHandler (
     -- *ErrorType
     -- $errors
@@ -29,7 +35,8 @@ printError :: ErrorType -> IO () -- ^ Print an error
 printError err = putStrLn $ formatError err
 
 formatError :: ErrorType -> String -- ^ Format an error
-formatError (UndefinedVariableError varName) = "*** ERROR: variable " ++ varName ++ " is not bound."
+formatError (UndefinedVariableError varName) =
+    "*** ERROR: variable " ++ varName ++ " is not bound."
 formatError err = "*** ERROR: " ++ show err
 
 stringToErrorType :: String -> ErrorHandler.ErrorType -- ^ Convert a string to an error type

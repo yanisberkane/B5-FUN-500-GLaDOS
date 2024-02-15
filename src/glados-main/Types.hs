@@ -1,3 +1,9 @@
+{-
+-- EPITECH PROJECT, 2024
+-- B5-FUN-500-GLaDOS-Mirror [WSL: Ubuntu]
+-- File description:
+-- Types
+-}
 module Types (
     -- *Types
     -- $type
